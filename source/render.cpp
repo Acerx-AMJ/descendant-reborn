@@ -39,6 +39,10 @@ Vector2 translateScreenToRatio(Vector2 screen) {
    return Vector2Divide(screen, getScreenSize());
 }
 
+Vector2 cubicSize(float size) {
+   return {getCubicRatio() * size, getCubicRatio() * size};
+}
+
 Vector2 getTextSize(Font font, const char *text, float fontSize, float spacing) {
    return MeasureTextEx(font, text, fontSize, spacing);
 }
@@ -79,4 +83,12 @@ void drawTextRatioCentered(Font font, Vector2 ratio, const char *text, float fon
    float fontSizeScaled = getFontSize(fontSize);
    float spacingScaled = getFontSize(1.0f);
    DrawTextPro(font, text, translateRatioToScreen(ratio), getTextOrigin(font, text, fontSizeScaled, spacingScaled), 0.0f, fontSizeScaled, spacingScaled, color);
+}
+
+void drawTexture(Texture texture, Vector2 position, Vector2 size, Color color, float rotation) {
+   DrawTexturePro(texture, getSource(texture), getRectangle(position, size), {0.0f, 0.0f}, rotation, color);
+}
+
+void drawTextureCentered(Texture texture, Vector2 position, Vector2 size, Color color, float rotation) {
+   DrawTexturePro(texture, getSource(texture), getRectangle(position, size), getOrigin(size), rotation, color);
 }

@@ -1,3 +1,4 @@
+#include "loading_state.hpp"
 #include <cstdlib>
 #include <ctime>
 #include <raylib.h>
@@ -7,7 +8,7 @@ constexpr int minWindowHeight = 600;
 
 int main() {
    srand(time(nullptr));
-   SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_RESIZABLE);
+   SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_MAXIMIZED);
    InitWindow(minWindowWidth, minWindowHeight, "Descendant Reborn");
    SetWindowMinSize(minWindowWidth, minWindowHeight);
    InitAudioDevice();

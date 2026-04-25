@@ -1,0 +1,15 @@
+Abyss Ascendant 3!
+Made by Daniel Vishnevsky!
+Made with C++ and Raylib!
+Using the power of plain text to show you this message!
+Edit assets/splash.txt for your own messages!
+Splash.
+In development.
+Undefined behavior included!
+Now with more memory leaks!
+segmentation fault (core dumped)
+Thanks for playing!
+TODO: fix this.
+Code is open-source on Github!
+Make sure to star the repository on Github!
+Now includes a loading screen!

@@ -13,6 +13,7 @@ Vector2 getScreenCenter();
 Vector2 getScreenCenterOffset(Vector2 offset);
 Vector2 translateRatioToScreen(Vector2 ratio);
 Vector2 translateScreenToRatio(Vector2 screen);
+Vector2 cubicSize(float size);
 
 Vector2 getTextSize(Font font, const char *text, float fontSize, float spacing);
 Vector2 getTextOrigin(Font font, const char *text, float fontSize, float spacing);
@@ -27,3 +28,5 @@ void drawText(Font font, Vector2 position, const char *text, float fontSize, Col
 void drawTextCentered(Font font, Vector2 position, const char *text, float fontSize, Color color);
 void drawTextRatio(Font font, Vector2 ratio, const char *text, float fontSize, Color color);
 void drawTextRatioCentered(Font font, Vector2 ratio, const char *text, float fontSize, Color color);
+void drawTexture(Texture texture, Vector2 position, Vector2 size, Color color, float rotation = 0.0f);
+void drawTextureCentered(Texture texture, Vector2 position, Vector2 size, Color color, float rotation = 0.0f);
