@@ -146,5 +146,20 @@ void Button::update(bool navigHovering, bool navigDown, bool navigClicked) {
 void Button::render() {
    Color tint = disabled ? buttonDisabledColor : WHITE;
    drawTextureCentered(texture, position, Vector2Scale(size, scale * getCubicRatio()), tint);
-   drawTextCentered(font, position, text.c_str(), fontSize * scale, tint);
+
+   if (!text.empty()) {
+      drawTextCentered(font, position, text.c_str(), fontSize * scale, tint);
+   }
+}
+
+UIElement *Button::copy() {
+   refCount += 1;
+   return this;
+}
+
+void destroy(UIElement *element) {
+   element->refCount -= 1;
+   if (element->refCount == 0) {
+      delete element;
+   }
 }

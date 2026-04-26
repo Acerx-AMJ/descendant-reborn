@@ -9,7 +9,7 @@ Navigation::Navigation() {
 
 Navigation::~Navigation() {
    for (size_t i = 1; i < elements.size(); ++i) {
-      delete elements[i];
+      destroy(elements[i]);
    }
 }
 

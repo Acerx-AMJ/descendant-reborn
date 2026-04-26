@@ -18,7 +18,7 @@ struct State {
    int lastHeight = 0;
 
    bool quittingState = false;
-   bool fadingIn = false;
+   bool fadingIn = true;
    bool fadingOut = false;
 
    float fadeTimer = 0.0f;

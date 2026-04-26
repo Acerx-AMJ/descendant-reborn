@@ -1,5 +1,6 @@
 #include "menu_state.hpp"
 #include "asset.hpp"
+#include "customize_state.hpp"
 
 MenuState::MenuState() {
    Texture buttonTexture = getTexture("button");
@@ -32,7 +33,8 @@ void MenuState::update() {
 
    // Customize button
    if (titleButtons.getButton(3)->clicked) {
-
+      phase = Phase::customize;
+      fadingOut = true;
    }
 
    // Quit button
@@ -70,5 +72,9 @@ void MenuState::updateResponsiveness() {
 }
 
 State *MenuState::change() {
+   if (phase == Phase::customize) {
+      return new CustomizeState();
+   }
+
    return nullptr;
 }

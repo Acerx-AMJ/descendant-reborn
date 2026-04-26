@@ -38,10 +38,12 @@ struct UIElement {
    virtual ~UIElement() = default;
    virtual void update(bool navigHovering = false, bool navigDown = false, bool navigClicked = false) = 0;
    virtual void render() = 0;
+   virtual UIElement *copy() = 0;
 
    bool hovering = false;
    bool down = false;
    bool clicked = false;
+   size_t refCount = 1;
 };
 
 struct Button: public UIElement {
@@ -50,6 +52,7 @@ struct Button: public UIElement {
 
    void update(bool navigHovering = false, bool navigDown = false, bool navigClicked = false) override;
    void render() override;
+   UIElement *copy() override;
 
    Vector2 position;
    Vector2 size;
@@ -63,3 +66,5 @@ struct Button: public UIElement {
    float scale = 1.0f;
    float fontSize = 0.0f;
 };
+
+void destroy(UIElement *element);
