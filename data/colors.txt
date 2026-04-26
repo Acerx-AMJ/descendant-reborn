@@ -1,0 +1,9 @@
+# Empty lines and lines starting with "#" are ignored.
+# R G B
+
+1.0 0.0 0.0
+0.0 1.0 0.0
+0.0 0.0 1.0
+0.0 1.0 1.0
+1.0 0.0 1.0
+1.0 1.0 0.0

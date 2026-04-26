@@ -1,5 +1,6 @@
 #include "player.hpp"
 #include "asset.hpp"
+#include "data.hpp"
 #include "render.hpp"
 #include <raylib.h>
 #include <raymath.h>
@@ -45,10 +46,12 @@ void Player::render() {
    }
 
    Shader shader = getShader("twocolor");
-   Texture texture = getTexture(playerIconMap[iconID]);
-   
-   SetShaderValue(shader, primaryShaderLocation, &playerColorMap[primaryColorID], SHADER_UNIFORM_VEC3);
-   SetShaderValue(shader, secondaryShaderLocation, &playerColorMap[secondaryColorID], SHADER_UNIFORM_VEC3);
+   Texture texture = getTexture(getPlayerIcon(iconID));
+   Vector3 primary = getPlayerColor(primaryColorID);
+   Vector3 secondary = getPlayerColor(secondaryColorID);
+
+   SetShaderValue(shader, primaryShaderLocation, &primary, SHADER_UNIFORM_VEC3);
+   SetShaderValue(shader, secondaryShaderLocation, &secondary, SHADER_UNIFORM_VEC3);
 
    BeginShaderMode(shader);
       for (int i = shadowCount - 1; i >= 0; --i) {

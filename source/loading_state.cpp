@@ -1,8 +1,10 @@
 #include "loading_state.hpp"
 #include "asset.hpp"
+#include "data.hpp"
 #include "file.hpp"
 #include "render.hpp"
 #include "sound.hpp"
+
 
 LoadingState::LoadingState() {
    loadingText = "Loading Fonts... ";
@@ -32,6 +34,11 @@ void LoadingState::update() {
    }
    else if (phase == Load::sounds) {
       loadSounds();
+      loadingText = "Loading Game Data... ";
+      phase = Load::data;
+   }
+   else if (phase == Load::data) {
+      loadData();
       loadingText = "Loading Done!";
       phase = Load::count;
    }

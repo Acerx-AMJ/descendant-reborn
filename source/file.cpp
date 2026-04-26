@@ -4,6 +4,30 @@
 #include <vector>
 #include <sstream>
 
+std::vector<std::string> getLinesFromFileIgnoringCommentsAndEmptyLines(const std::string &path) {
+   std::fstream file (path);
+   if (!file.is_open()) {
+      return {};
+   }
+
+   std::vector<std::string> lines;
+   lines.reserve(64);
+   std::string line;
+
+   while (std::getline(file, line)) {
+      if (size_t pos = line.find_first_of('#'); pos != std::string::npos) {
+         line.erase(pos);
+      }
+      line.erase(line.find_last_not_of(" \n\r\t\v\f") + 1);
+      line.erase(0, line.find_first_not_of(" \n\r\t\v\f"));
+
+      if (!line.empty()) {
+         lines.push_back(line);
+      }
+   }
+   return lines;
+}
+
 std::string getRandomLineFromFile(const std::string &path) {
    std::fstream file (path);
    if (!file.is_open()) {

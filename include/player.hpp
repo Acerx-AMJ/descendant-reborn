@@ -5,17 +5,6 @@
 static inline constexpr std::size_t shadowCount = 3;
 static inline constexpr Vector2 playerSize = {50.0f, 50.0f};
 
-static inline constexpr std::size_t playerIconCount = 3;
-static inline constexpr std::array<const char*, playerIconCount> playerIconMap {
-   "player1", "player2", "player3"
-};
-
-static inline constexpr std::size_t playerColorCount = 6;
-static inline constexpr std::array<Vector3, playerColorCount> playerColorMap {{
-   {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 1.0f},
-   {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 0.0f}
-}};
-
 struct Player {
    void init();
    void update(); // to be called in 'fixedUpdate'

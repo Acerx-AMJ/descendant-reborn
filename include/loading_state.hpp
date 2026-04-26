@@ -14,7 +14,7 @@ struct LoadingState: public State {
 
 private:
 
-   enum class Load {fonts, textures, shaders, sounds, count};
+   enum class Load {fonts, textures, shaders, sounds, data, count};
 
    std::string loadingText, splash;
    Load phase = Load::fonts;

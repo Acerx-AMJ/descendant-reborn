@@ -1,0 +1,6 @@
+# Empty lines and lines starting with "#" are ignored.
+# "assets/sprites/player1.png" -> "player1"
+
+player1
+player2
+player3
