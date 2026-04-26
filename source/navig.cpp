@@ -16,8 +16,8 @@ Navigation::~Navigation() {
 void Navigation::update() {
    size_t previous = index;
 
-   bool shouldGoUp = IsKeyReleased(KEY_UP);
-   bool shouldGoDown = IsKeyReleased(KEY_DOWN);
+   bool shouldGoUp = IsKeyPressed(KEY_UP);
+   bool shouldGoDown = IsKeyPressed(KEY_DOWN);
 
    if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_DOWN)) {
       holdTimer += GetFrameTime();
@@ -55,7 +55,7 @@ void Navigation::update() {
          continue;
       }
 
-      elements[i]->update(true, IsKeyDown(KEY_ENTER), IsKeyReleased(KEY_ENTER));
+      elements[i]->update(true, IsKeyDown(KEY_ENTER), IsKeyPressed(KEY_ENTER));
    }
 }
 

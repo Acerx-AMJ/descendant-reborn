@@ -116,15 +116,16 @@ void Button::update(bool navigHovering, bool navigDown, bool navigClicked) {
    Vector2 mouse = GetMousePosition();
    Vector2 scaledSize = Vector2Scale(size, getCubicRatio());
    Vector2 realPosition = Vector2Subtract(position, getOrigin(scaledSize));
-   hovering = navigHovering || CheckCollisionPointRec(mouse, getRectangle(realPosition, scaledSize));
+   bool actuallyHovering = CheckCollisionPointRec(mouse, getRectangle(realPosition, scaledSize));
+   hovering = actuallyHovering || navigHovering;
 
    if (disabled) {
       down = false;
       clicked = false;
    }
    else {
-      down = navigDown || (hovering && IsMouseButtonDown(MOUSE_BUTTON_LEFT));
-      clicked = navigClicked || (hovering && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
+      down = navigDown || (actuallyHovering && IsMouseButtonDown(MOUSE_BUTTON_LEFT));
+      clicked = navigClicked || (actuallyHovering && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
    }
 
    float dt = GetFrameTime();

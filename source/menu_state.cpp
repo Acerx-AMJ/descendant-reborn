@@ -46,6 +46,12 @@ void MenuState::render() {
    drawTextCentered(font, getScreenCenterOffset({0.0f, -250.0f * getHeightRatio()}), "DESCENDANT REBORN", 120.0f, WHITE);
 
    titleButtons.render();
+
+   if (titleButtons.anySelected()) {
+      Button *button = titleButtons.getSelectedButton();
+      float scale = getCubicRatio() * button->scale;
+      drawTextureCentered(getTexture("button_pointer"), button->position, {318.75f * scale, 106.25f * scale}, WHITE);
+   }
 }
 
 void MenuState::fixedUpdate() {
