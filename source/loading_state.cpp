@@ -2,6 +2,7 @@
 #include "asset.hpp"
 #include "data.hpp"
 #include "file.hpp"
+#include "menu_state.hpp"
 #include "render.hpp"
 #include "sound.hpp"
 
@@ -44,7 +45,7 @@ void LoadingState::update() {
    }
    else if (phase == Load::count) {
       finalWaitTimer += GetFrameTime();
-      // fadingOut = (finalWaitTimer >= 1.0f);
+      fadingOut = (finalWaitTimer >= 1.0f);
    }
 }
 
@@ -71,5 +72,5 @@ void LoadingState::updateResponsiveness() {
 }
 
 State *LoadingState::change() {
-   return nullptr;
+   return new MenuState();
 }

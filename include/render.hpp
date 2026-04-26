@@ -1,5 +1,6 @@
 #pragma once
 #include <raylib.h>
+#include <string>
 
 // math module
 
@@ -30,3 +31,35 @@ void drawTextRatio(Font font, Vector2 ratio, const char *text, float fontSize, C
 void drawTextRatioCentered(Font font, Vector2 ratio, const char *text, float fontSize, Color color);
 void drawTexture(Texture texture, Vector2 position, Vector2 size, Color color, float rotation = 0.0f);
 void drawTextureCentered(Texture texture, Vector2 position, Vector2 size, Color color, float rotation = 0.0f);
+
+// ui module
+
+struct UIElement {
+   virtual ~UIElement() = default;
+   virtual void update(bool navigHovering = false, bool navigDown = false, bool navigClicked = false) = 0;
+   virtual void render() = 0;
+
+   bool hovering = false;
+   bool down = false;
+   bool clicked = false;
+};
+
+struct Button: public UIElement {
+   static Button *make(Texture texture, Font font, const std::string &text, float fontSize);
+   void init(Texture texture, Font font, const std::string &text, float fontSize);
+
+   void update(bool navigHovering = false, bool navigDown = false, bool navigClicked = false) override;
+   void render() override;
+
+   Vector2 position;
+   Vector2 size;
+   Texture texture;
+   Font font;
+
+   std::string text;
+   size_t ID = 0;
+
+   bool disabled = false;
+   float scale = 1.0f;
+   float fontSize = 0.0f;
+};

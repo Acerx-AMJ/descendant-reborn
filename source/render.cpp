@@ -92,3 +92,58 @@ void drawTexture(Texture texture, Vector2 position, Vector2 size, Color color, f
 void drawTextureCentered(Texture texture, Vector2 position, Vector2 size, Color color, float rotation) {
    DrawTexturePro(texture, getSource(texture), getRectangle(position, size), getOrigin(size), rotation, color);
 }
+
+// ui module
+
+constexpr float buttonScaleMin = 0.97f;
+constexpr float buttonScaleMax = 1.03f;
+constexpr Color buttonDisabledColor = {170, 170, 150, 255};
+
+Button *Button::make(Texture texture, Font font, const std::string &text, float fontSize) {
+   Button *button = new Button();
+   button->init(texture, font, text, fontSize);
+   return button;
+}
+
+void Button::init(Texture texture, Font font, const std::string &text, float fontSize) {
+   this->texture = texture;
+   this->font = font;
+   this->text = text;
+   this->fontSize = fontSize;
+}
+
+void Button::update(bool navigHovering, bool navigDown, bool navigClicked) {
+   Vector2 mouse = GetMousePosition();
+   Vector2 scaledSize = Vector2Scale(size, getCubicRatio());
+   Vector2 realPosition = Vector2Subtract(position, getOrigin(scaledSize));
+   hovering = navigHovering || CheckCollisionPointRec(mouse, getRectangle(realPosition, scaledSize));
+
+   if (disabled) {
+      down = false;
+      clicked = false;
+   }
+   else {
+      down = navigDown || (hovering && IsMouseButtonDown(MOUSE_BUTTON_LEFT));
+      clicked = navigClicked || (hovering && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
+   }
+
+   float dt = GetFrameTime();
+   if (down) {
+      scale = fmaxf(scale - dt, buttonScaleMin);
+   }
+   else if (hovering) {
+      scale = fminf(scale + dt, buttonScaleMax);
+   }
+   else if (scale < 1.0f) {
+      scale = fminf(scale + dt, 1.0f);
+   }
+   else if (scale > 1.0f) {
+      scale = fmaxf(scale - dt, 1.0f);
+   }
+}
+
+void Button::render() {
+   Color tint = disabled ? buttonDisabledColor : WHITE;
+   drawTextureCentered(texture, position, Vector2Scale(size, scale * getCubicRatio()), tint);
+   drawTextCentered(font, position, text.c_str(), fontSize * scale, tint);
+}
