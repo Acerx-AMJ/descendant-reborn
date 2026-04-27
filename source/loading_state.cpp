@@ -40,6 +40,7 @@ void LoadingState::update() {
    }
    else if (phase == Load::data) {
       loadData();
+      playSound("success");
       loadingText = "Loading Done!";
       phase = Load::count;
    }

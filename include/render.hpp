@@ -36,35 +36,49 @@ void drawTextureCentered(Texture texture, Vector2 position, Vector2 size, Color 
 
 struct UIElement {
    virtual ~UIElement() = default;
-   virtual void update(bool navigHovering = false, bool navigDown = false, bool navigClicked = false) = 0;
+   void update(bool navigHovering = false, bool navigDown = false, bool navigClicked = false);
    virtual void render() = 0;
-   virtual UIElement *copy() = 0;
-
-   bool hovering = false;
-   bool down = false;
-   bool clicked = false;
-   size_t refCount = 1;
-};
-
-struct Button: public UIElement {
-   static Button *make(Texture texture, Font font, const std::string &text, float fontSize);
-   void init(Texture texture, Font font, const std::string &text, float fontSize);
-
-   void update(bool navigHovering = false, bool navigDown = false, bool navigClicked = false) override;
-   void render() override;
-   UIElement *copy() override;
+   UIElement *copy();
 
    Vector2 position;
    Vector2 size;
-   Texture texture;
-   Font font;
 
-   std::string text;
    size_t ID = 0;
+   size_t refCount = 1;
 
-   bool disabled = false;
    float scale = 1.0f;
+   float scaleMin = 0.97f;
+   float scaleMax = 1.03f;
+   bool hovering = false;
+   bool down = false;
+   bool clicked = false;
+   bool disabled = false;
+};
+
+struct Button: public UIElement {
+   static Button *make(Texture texture, Vector2 size, Font font, const std::string &text, float fontSize);
+   static Button *make(Texture texture, Vector2 size);
+   
+   void init(Texture texture, Vector2 size, Font font, const std::string &text, float fontSize);
+   void init(Texture texture, Vector2 size);
+   void render() override;
+
+   Font font;
+   Texture texture;
+   std::string text;
    float fontSize = 0.0f;
+};
+
+struct TextureRect: public UIElement {
+   static TextureRect *make(Texture texture, Vector2 size);
+   static TextureRect *make(Color color, Vector2 size);
+   
+   void init(Texture texture, Vector2 size);
+   void init(Color color, Vector2 size);
+   void render() override;
+
+   Texture texture;
+   Color color;
 };
 
 void destroy(UIElement *element);

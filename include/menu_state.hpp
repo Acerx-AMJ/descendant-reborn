@@ -18,4 +18,5 @@ private:
    Phase phase = Phase::title;
 
    Navigation titleButtons;
+   Button *playButton, *editorButton, *customizeButton, *quitButton;
 };

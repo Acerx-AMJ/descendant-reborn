@@ -1,4 +1,5 @@
 #include "render.hpp"
+#include "sound.hpp"
 #include <raymath.h>
 
 // math module
@@ -95,28 +96,14 @@ void drawTextureCentered(Texture texture, Vector2 position, Vector2 size, Color 
 
 // ui module
 
-constexpr float buttonScaleMin = 0.97f;
-constexpr float buttonScaleMax = 1.03f;
-constexpr Color buttonDisabledColor = {170, 170, 150, 255};
+constexpr Color disabledColor = {170, 170, 150, 255};
 
-Button *Button::make(Texture texture, Font font, const std::string &text, float fontSize) {
-   Button *button = new Button();
-   button->init(texture, font, text, fontSize);
-   return button;
-}
-
-void Button::init(Texture texture, Font font, const std::string &text, float fontSize) {
-   this->texture = texture;
-   this->font = font;
-   this->text = text;
-   this->fontSize = fontSize;
-}
-
-void Button::update(bool navigHovering, bool navigDown, bool navigClicked) {
+void UIElement::update(bool navigHovering, bool navigDown, bool navigClicked) {
    Vector2 mouse = GetMousePosition();
    Vector2 scaledSize = Vector2Scale(size, getCubicRatio());
    Vector2 realPosition = Vector2Subtract(position, getOrigin(scaledSize));
    bool actuallyHovering = CheckCollisionPointRec(mouse, getRectangle(realPosition, scaledSize));
+   bool wasHovering = hovering;
    hovering = actuallyHovering || navigHovering;
 
    if (disabled) {
@@ -130,10 +117,10 @@ void Button::update(bool navigHovering, bool navigDown, bool navigClicked) {
 
    float dt = GetFrameTime();
    if (down) {
-      scale = fmaxf(scale - dt, buttonScaleMin);
+      scale = fmaxf(scale - dt, scaleMin);
    }
    else if (hovering) {
-      scale = fminf(scale + dt, buttonScaleMax);
+      scale = fminf(scale + dt, scaleMax);
    }
    else if (scale < 1.0f) {
       scale = fminf(scale + dt, 1.0f);
@@ -141,10 +128,50 @@ void Button::update(bool navigHovering, bool navigDown, bool navigClicked) {
    else if (scale > 1.0f) {
       scale = fmaxf(scale - dt, 1.0f);
    }
+
+   if (!wasHovering && hovering) {
+      playSound("hover");
+   }
+
+   if (clicked) {
+      playSound("click");
+   }
+}
+
+UIElement *UIElement::copy() {
+   refCount += 1;
+   return this;
+}
+
+Button *Button::make(Texture texture, Vector2 size, Font font, const std::string &text, float fontSize) {
+   Button *button = new Button();
+   button->init(texture, size, font, text, fontSize);
+   return button;
+}
+
+Button *Button::make(Texture texture, Vector2 size) {
+   Button *button = new Button();
+   button->init(texture, size);
+   return button;
+}
+
+void Button::init(Texture texture, Vector2 size, Font font, const std::string &text, float fontSize) {
+   this->texture = texture;
+   this->size = size;
+   this->font = font;
+   this->text = text;
+   this->fontSize = fontSize;
+}
+
+void Button::init(Texture texture, Vector2 size) {
+   this->texture = texture;
+   this->size = size;
+   scaleMin = 0.92f;
+   scaleMax = 1.08f;
 }
 
 void Button::render() {
-   Color tint = disabled ? buttonDisabledColor : WHITE;
+   Color tint = disabled ? disabledColor : WHITE;
    drawTextureCentered(texture, position, Vector2Scale(size, scale * getCubicRatio()), tint);
 
    if (!text.empty()) {
@@ -152,9 +179,42 @@ void Button::render() {
    }
 }
 
-UIElement *Button::copy() {
-   refCount += 1;
-   return this;
+TextureRect *TextureRect::make(Texture texture, Vector2 size) {
+   TextureRect *rect = new TextureRect();
+   rect->init(texture, size);
+   return rect;
+}
+
+TextureRect *TextureRect::make(Color color, Vector2 size) {
+   TextureRect *rect = new TextureRect();
+   rect->init(color, size);
+   return rect;
+}
+
+void TextureRect::init(Texture texture, Vector2 size) {
+   this->texture = texture;
+   this->size = size;
+   scaleMin = 0.92f;
+   scaleMax = 1.08f;
+}
+
+void TextureRect::init(Color color, Vector2 size) {
+   this->texture.id = 0;
+   this->color = color;
+   this->size = size;
+   scaleMin = 0.92f;
+   scaleMax = 1.08f;
+}
+
+void TextureRect::render() {
+   if (texture.id == 0) {
+      Vector2 sizeScaled = Vector2Scale(size, scale * getCubicRatio());
+      DrawRectanglePro(getRectangle(position, sizeScaled), getOrigin(sizeScaled), 0, color);
+      return;
+   }
+
+   Color tint = disabled ? disabledColor : WHITE;
+   drawTextureCentered(texture, position, Vector2Scale(size, scale * getCubicRatio()), tint);
 }
 
 void destroy(UIElement *element) {

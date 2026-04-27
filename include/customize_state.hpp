@@ -1,5 +1,6 @@
 #pragma once
 #include "navig.hpp"
+#include "player.hpp"
 #include "state.hpp"
 
 struct CustomizeState: public State {
@@ -17,12 +18,9 @@ private:
    enum class Tab {none, skin, primary, secondary};
    Tab tab = Tab::none;
 
+   Player player;
    Navigation skinButtons, colorButtons, hiddenButtons, noTabButtons;
    Button *backButton, *skinTab, *primaryTab, *secondaryTab, *hiddenButton, *visibleButton, *diceButton;
-
-   size_t skinID = 0;
-   size_t primaryColorID = 0;
-   size_t secondaryColorID = 0;
 
    int primaryShaderLocation = 0;
    int secondaryShaderLocation = 0;

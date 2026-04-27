@@ -17,22 +17,44 @@ CustomizeState::CustomizeState() {
            visibleTexture = getTexture("visible"),
            diceTexture = getTexture("dice");
 
-   backButton = Button::make(backTexture, {}, "", 0.0f),
-   skinTab = Button::make(buttonTexture, font, "SKIN", 50.0f),
-   primaryTab = Button::make(buttonTexture, font, "PRIMARY", 50.0f),
-   secondaryTab = Button::make(buttonTexture, font, "SECONDARY", 50.0f),
-   hiddenButton = Button::make(hiddenTexture, {}, "", 0.0f),
-   visibleButton = Button::make(visibleTexture, {}, "", 0.0f),
-   diceButton = Button::make(diceTexture, {}, "", 0.0f);
+   backButton = Button::make(backTexture, {70.0f, 70.0f}),
+   skinTab = Button::make(buttonTexture, {300.0f, 100.0f}, font, "SKIN", 50.0f),
+   primaryTab = Button::make(buttonTexture, {300.0f, 100.0f}, font, "PRIMARY", 50.0f),
+   secondaryTab = Button::make(buttonTexture, {300.0f, 100.0f}, font, "SECONDARY", 50.0f),
+   hiddenButton = Button::make(hiddenTexture, {70.0f, 70.0f}),
+   visibleButton = Button::make(visibleTexture, {70.0f, 70.0f}),
+   diceButton = Button::make(diceTexture, {70.0f, 70.0f});
 
    skinButtons.addElements({backButton->copy(), skinTab->copy(), primaryTab->copy(),
-      secondaryTab->copy(), diceButton->copy(), visibleButton->copy()});
+      secondaryTab->copy(), visibleButton->copy(), diceButton->copy(),});
    colorButtons.addElements({backButton->copy(), skinTab->copy(), primaryTab->copy(),
-      secondaryTab->copy(), diceButton->copy(), visibleButton->copy()});
+      secondaryTab->copy(), visibleButton->copy(), diceButton->copy(),});
    hiddenButtons.addElements({hiddenButton});
-   noTabButtons.addElements({backButton, skinTab, primaryTab, secondaryTab, diceButton, visibleButton});
+   noTabButtons.addElements({backButton, skinTab, primaryTab, secondaryTab, visibleButton, diceButton});
+
+   for (const std::string &icon: getPlayerIconContainer()) {
+      TextureRect *rect = TextureRect::make(getTexture(icon), {70.0f, 70.0f});
+      skinButtons.addElement(rect);
+   }
+
+   for (const Vector3 &color: getPlayerColorContainer()) {
+      Color translated {
+         static_cast<unsigned char>(color.x * 255.0f),
+         static_cast<unsigned char>(color.y * 255.0f),
+         static_cast<unsigned char>(color.z * 255.0f),
+         255
+      };
+      TextureRect *rect = TextureRect::make(translated, {70.0f, 70.0f});
+      colorButtons.addElement(rect);
+   }
 
    updateResponsiveness();
+
+   player.position = getScreenCenter();
+   player.iconID = 0;
+   player.primaryColorID = 0;
+   player.secondaryColorID = 0;
+   player.init();
 }
 
 CustomizeState::~CustomizeState() {
@@ -40,14 +62,18 @@ CustomizeState::~CustomizeState() {
 }
 
 void CustomizeState::update() {
-   if (backButton->clicked || IsKeyPressed(KEY_ESCAPE)) {
+   if (backButton->clicked || handleKeyPressWithSound(KEY_ESCAPE)) {
       fadingOut = true;
    }
 
    if (!visible) {
       hiddenButtons.update();
 
-      if (hiddenButton->clicked || IsKeyPressed(KEY_H)) {
+      if (hiddenButton->clicked || handleKeyPressWithSound(KEY_H)) {
+         // 5 is visible button
+         skinButtons.setIndex(5);
+         colorButtons.setIndex(5);
+         noTabButtons.setIndex(5);
          visibleButton->texture = getTexture("visible");
          visible = true;
       }
@@ -55,7 +81,8 @@ void CustomizeState::update() {
    }
 
    // Update tab switching
-   if (IsKeyPressed(KEY_LEFT_BRACKET)) {
+   Tab lastTab = tab;
+   if (handleKeyPressWithSound(KEY_LEFT_BRACKET)) {
       if (tab == Tab::skin)
          tab = Tab::none;
       else if (tab == Tab::primary)
@@ -66,7 +93,7 @@ void CustomizeState::update() {
          tab = Tab::secondary;
    }
 
-   if (IsKeyPressed(KEY_RIGHT_BRACKET)) {
+   if (handleKeyPressWithSound(KEY_RIGHT_BRACKET)) {
       if (tab == Tab::skin)
          tab = Tab::primary;
       else if (tab == Tab::primary)
@@ -89,35 +116,47 @@ void CustomizeState::update() {
    }
 
    // Update corner buttons
-   if (diceButton->clicked || IsKeyPressed(KEY_R)) {
-      primaryColorID = rand() % getPlayerIconCount();
-      primaryColorID = rand() % getPlayerColorCount();
-      secondaryColorID = rand() % getPlayerColorCount();
+   if (diceButton->clicked || handleKeyPressWithSound(KEY_R)) {
+      player.iconID = rand() % getPlayerIconCount();
+      player.primaryColorID = rand() % getPlayerColorCount();
+      player.secondaryColorID = rand() % getPlayerColorCount();
    }
 
-   if (visibleButton->clicked || IsKeyPressed(KEY_H)) {
+   if (visibleButton->clicked || handleKeyPressWithSound(KEY_H)) {
+      hiddenButtons.setIndex(1);
       visibleButton->texture = getTexture("hidden");
       visible = false;
    }
 
    // Update tabs
-   if (skinTab->clicked || IsKeyPressed(KEY_ONE)) {
+   if (skinTab->clicked || handleKeyPressWithSound(KEY_ONE)) {
       tab = (tab == Tab::skin ? Tab::none : Tab::skin);
-      skinButtons.setIndex(extraButtons + skinID);
    }
    
-   if (primaryTab->clicked || IsKeyPressed(KEY_TWO)) {
+   if (primaryTab->clicked || handleKeyPressWithSound(KEY_TWO)) {
       tab = (tab == Tab::primary ? Tab::none : Tab::primary);
-      colorButtons.setIndex(extraButtons + primaryColorID);
    }
 
-   if (secondaryTab->clicked || IsKeyPressed(KEY_THREE)) {
+   if (secondaryTab->clicked || handleKeyPressWithSound(KEY_THREE)) {
       tab = (tab == Tab::secondary ? Tab::none : Tab::secondary);
-      colorButtons.setIndex(extraButtons + secondaryColorID);
+   }
+
+   if (lastTab != tab && tab == Tab::skin) {
+      skinButtons.setIndex(extraButtons + player.iconID);
+   }
+
+   if (lastTab != tab && tab == Tab::primary) {
+      colorButtons.setIndex(extraButtons + player.primaryColorID);
+   }
+
+   if (lastTab != tab && tab == Tab::secondary) {
+      colorButtons.setIndex(extraButtons + player.secondaryColorID);
    }
 }
 
 void CustomizeState::render() {
+   player.render();
+   
    if (!visible) {
       hiddenButtons.render();
       return;
@@ -128,8 +167,8 @@ void CustomizeState::render() {
    }
    else if (tab == Tab::skin) {
       Shader shader = getShader("twocolor");
-      Vector3 primary = getPlayerColor(primaryColorID);
-      Vector3 secondary = getPlayerColor(secondaryColorID);
+      Vector3 primary = getPlayerColor(player.primaryColorID);
+      Vector3 secondary = getPlayerColor(player.secondaryColorID);
 
       SetShaderValue(shader, primaryShaderLocation, &primary, SHADER_UNIFORM_VEC3);
       SetShaderValue(shader, secondaryShaderLocation, &secondary, SHADER_UNIFORM_VEC3);
@@ -147,25 +186,67 @@ void CustomizeState::render() {
    else {
       colorButtons.render();
    }
+
+   Texture pointerTexture = getTexture("button_pointer");
+   if (tab == Tab::skin) {
+      float scale = getCubicRatio() * skinTab->scale;
+      drawTextureCentered(pointerTexture, skinTab->position, {318.75f * scale, 106.25f * scale}, WHITE);
+   }
+   else if (tab == Tab::primary) {
+      float scale = getCubicRatio() * primaryTab->scale;
+      drawTextureCentered(pointerTexture, primaryTab->position, {318.75f * scale, 106.25f * scale}, WHITE);
+   }
+   else if (tab == Tab::secondary) {
+      float scale = getCubicRatio() * secondaryTab->scale;
+      drawTextureCentered(pointerTexture, secondaryTab->position, {318.75f * scale, 106.25f * scale}, WHITE);
+   }
 }
 
 void CustomizeState::fixedUpdate() {
-
+   player.update();
 }
 
 void CustomizeState::updateResponsiveness() {
    float cr = getCubicRatio();
 
    backButton->position = {cr * 55.0f, cr * 55.0f};
-   diceButton->position = {GetScreenWidth() - cr * 55.0f, cr * 55.0f};
    visibleButton->position = {cr * 55.0f, GetScreenHeight() - cr * 55.0f};
    hiddenButton->position = {cr * 55.0f, GetScreenHeight() - cr * 55.0f};
-   backButton->size = diceButton->size = visibleButton->size = hiddenButton->size = {70.0f, 70.0f};
+   diceButton->position = {cr * 145.0f, GetScreenHeight() - cr * 55.0f};
 
    skinTab->position = {GetScreenWidth() / 2.0f - 305.0f * cr, 70.0f * cr};
    primaryTab->position = {GetScreenWidth() / 2.0f, 70.0f * cr};
    secondaryTab->position = {GetScreenWidth() / 2.0f + 305.0f * cr, 70.0f * cr};
-   skinTab->size = primaryTab->size = secondaryTab->size = {300.0f, 100.0f};
+
+   float positionX = cr * 50.0f;
+   float positionY = cr * 215.0f;
+
+   for (size_t i = extraButtons; i < skinButtons.elements.size(); ++i) {
+      TextureRect *button = skinButtons.getTextureRect(i);
+      button->ID = i - extraButtons + 1;
+      button->position = {positionX, positionY};
+
+      positionX += 90.0f * cr;
+      if (positionX >= GetScreenWidth() - 40.0f * cr) {
+         positionX = 50.0f * cr;
+         positionY += 90.0f * cr;
+      }
+   }
+
+   positionX = cr * 50.0f;
+   positionY = cr * 215.0f;
+
+   for (size_t i = extraButtons; i < colorButtons.elements.size(); ++i) {
+      TextureRect *button = colorButtons.getTextureRect(i);
+      button->ID = i - extraButtons + 1;
+      button->position = {positionX, positionY};
+
+      positionX += 90.0f * cr;
+      if (positionX >= GetScreenWidth() - 40.0f * cr) {
+         positionX = 50.0f * cr;
+         positionY += 90.0f * cr;
+      }
+   }
 }
 
 State *CustomizeState::change() {

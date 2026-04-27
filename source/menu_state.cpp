@@ -6,13 +6,10 @@ MenuState::MenuState() {
    Texture buttonTexture = getTexture("button");
    Font font = getFont("slackey");
 
-   Button *playButton = Button::make(buttonTexture, font, "PLAY", 50.0f),
-          *editorButton = Button::make(buttonTexture, font, "EDITOR", 50.0f),
-          *customizeButton = Button::make(buttonTexture, font, "CUSTOMIZE", 50.0f),
-          *quitButton = Button::make(buttonTexture, font, "QUIT", 50.0f);
-
-   playButton->size = editorButton->size = customizeButton->size = quitButton->size
-      = {300.0f, 100.0f};
+   playButton = Button::make(buttonTexture, {300.0f, 100.0f}, font, "PLAY", 50.0f),
+   editorButton = Button::make(buttonTexture, {300.0f, 100.0f}, font, "EDITOR", 50.0f),
+   customizeButton = Button::make(buttonTexture, {300.0f, 100.0f}, font, "CUSTOMIZE", 50.0f),
+   quitButton = Button::make(buttonTexture, {300.0f, 100.0f}, font, "QUIT", 50.0f);
 
    titleButtons.addElements({playButton, editorButton, customizeButton, quitButton});
    updateResponsiveness();
@@ -21,24 +18,20 @@ MenuState::MenuState() {
 void MenuState::update() {
    titleButtons.update();
 
-   // Play button
-   if (titleButtons.getButton(1)->clicked) {
+   if (playButton->clicked) {
 
    }
 
-   // Editor button
-   if (titleButtons.getButton(2)->clicked) {
+   if (editorButton->clicked) {
 
    }
 
-   // Customize button
-   if (titleButtons.getButton(3)->clicked) {
+   if (customizeButton->clicked) {
       phase = Phase::customize;
       fadingOut = true;
    }
 
-   // Quit button
-   if (titleButtons.getButton(4)->clicked) {
+   if (quitButton->clicked) {
       fadingOut = true;
    }
 }
@@ -61,14 +54,12 @@ void MenuState::fixedUpdate() {
 }
 
 void MenuState::updateResponsiveness() {
-   // float wr = getWidthRatio();
    float hr = getHeightRatio();
-   // float cr = getCubicRatio();
 
-   titleButtons.getButton(1)->position = getScreenCenterOffset({0.0f, -100.0f * hr});
-   titleButtons.getButton(2)->position = getScreenCenterOffset({0.0f, 20.0f * hr});
-   titleButtons.getButton(3)->position = getScreenCenterOffset({0.0f, 140.0f * hr});
-   titleButtons.getButton(4)->position = getScreenCenterOffset({0.0f, 260.0f * hr});
+   playButton->position = getScreenCenterOffset({0.0f, -100.0f * hr});
+   editorButton->position = getScreenCenterOffset({0.0f, 20.0f * hr});
+   customizeButton->position = getScreenCenterOffset({0.0f, 140.0f * hr});
+   quitButton->position = getScreenCenterOffset({0.0f, 260.0f * hr});
 }
 
 State *MenuState::change() {

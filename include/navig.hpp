@@ -2,6 +2,8 @@
 #include "render.hpp"
 #include <vector>
 
+bool handleKeyPressWithSound(int key);
+
 struct Navigation {
    Navigation();
    ~Navigation();
@@ -19,6 +21,8 @@ struct Navigation {
    UIElement *getSelectedElement();
    Button *getButton(size_t index);
    Button *getSelectedButton();
+   TextureRect *getTextureRect(size_t index);
+   TextureRect *getSelectedTextureRect();
    size_t getSelectedIndex();
 
    bool isIndexValid(size_t index);

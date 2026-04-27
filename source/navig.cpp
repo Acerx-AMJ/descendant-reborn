@@ -1,4 +1,13 @@
 #include "navig.hpp"
+#include "sound.hpp"
+
+bool handleKeyPressWithSound(int key) {
+   if (IsKeyPressed(key)) {
+      playSound("click");
+      return true;
+   }
+   return false;
+}
 
 constexpr float holdDelay = 0.4f;
 constexpr float holdInterval = 0.1f;
@@ -98,6 +107,14 @@ Button *Navigation::getButton(size_t index) {
 
 Button *Navigation::getSelectedButton() {
    return getButton(index);
+}
+
+TextureRect *Navigation::getTextureRect(size_t index) {
+   return isIndexValid(index) ? (TextureRect*)elements[index] : nullptr;
+}
+
+TextureRect *Navigation::getSelectedTextureRect() {
+   return getTextureRect(index);
 }
 
 size_t Navigation::getSelectedIndex() {
