@@ -107,9 +107,23 @@ void CustomizeState::update() {
    // Update buttons
    if (tab == Tab::skin) {
       skinButtons.update();
+      for (size_t i = extraButtons; i < skinButtons.elements.size(); ++i) {
+         TextureRect *rect = skinButtons.getTextureRect(i);
+         if (rect->clicked) {
+            player.iconID = rect->ID;
+            skinButtons.setIndex(i);
+         }
+      }
    }
    else if (tab != Tab::none) {
       colorButtons.update();
+      for (size_t i = extraButtons; i < colorButtons.elements.size(); ++i) {
+         TextureRect *rect = colorButtons.getTextureRect(i);
+         if (rect->clicked) {
+            (tab == Tab::primary ? player.primaryColorID : player.secondaryColorID) = rect->ID;
+            colorButtons.setIndex(i);
+         }
+      }
    }
    else {
       noTabButtons.update();
@@ -120,6 +134,9 @@ void CustomizeState::update() {
       player.iconID = rand() % getPlayerIconCount();
       player.primaryColorID = rand() % getPlayerColorCount();
       player.secondaryColorID = rand() % getPlayerColorCount();
+
+      skinButtons.setIndex(extraButtons + player.iconID);
+      colorButtons.setIndex(extraButtons + (tab == Tab::primary ? player.primaryColorID : player.secondaryColorID));
    }
 
    if (visibleButton->clicked || handleKeyPressWithSound(KEY_H)) {
@@ -188,6 +205,8 @@ void CustomizeState::render() {
    }
 
    Texture pointerTexture = getTexture("button_pointer");
+   Texture smallPointerTexture = getTexture("button_pointer_small");
+   
    if (tab == Tab::skin) {
       float scale = getCubicRatio() * skinTab->scale;
       drawTextureCentered(pointerTexture, skinTab->position, {318.75f * scale, 106.25f * scale}, WHITE);
@@ -199,6 +218,18 @@ void CustomizeState::render() {
    else if (tab == Tab::secondary) {
       float scale = getCubicRatio() * secondaryTab->scale;
       drawTextureCentered(pointerTexture, secondaryTab->position, {318.75f * scale, 106.25f * scale}, WHITE);
+   }
+
+   if (tab == Tab::skin && skinButtons.getSelectedIndex() >= extraButtons) {
+      TextureRect *selected = skinButtons.getSelectedTextureRect();
+      float scale = getCubicRatio() * selected->scale;
+      drawTextureCentered(smallPointerTexture, selected->position, {74.375f * scale, 74.375f * scale}, WHITE);
+   }
+
+   if ((tab == Tab::primary || tab == Tab::secondary) && colorButtons.getSelectedIndex() >= extraButtons) {
+      TextureRect *selected = colorButtons.getSelectedTextureRect();
+      float scale = getCubicRatio() * selected->scale;
+      drawTextureCentered(smallPointerTexture, selected->position, {74.375f * scale, 74.375f * scale}, WHITE);
    }
 }
 
@@ -223,7 +254,7 @@ void CustomizeState::updateResponsiveness() {
 
    for (size_t i = extraButtons; i < skinButtons.elements.size(); ++i) {
       TextureRect *button = skinButtons.getTextureRect(i);
-      button->ID = i - extraButtons + 1;
+      button->ID = i - extraButtons;
       button->position = {positionX, positionY};
 
       positionX += 90.0f * cr;
@@ -238,7 +269,7 @@ void CustomizeState::updateResponsiveness() {
 
    for (size_t i = extraButtons; i < colorButtons.elements.size(); ++i) {
       TextureRect *button = colorButtons.getTextureRect(i);
-      button->ID = i - extraButtons + 1;
+      button->ID = i - extraButtons;
       button->position = {positionX, positionY};
 
       positionX += 90.0f * cr;
