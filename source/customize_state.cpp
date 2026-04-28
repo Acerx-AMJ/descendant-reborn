@@ -3,6 +3,7 @@
 #include "data.hpp"
 #include "menu_state.hpp"
 
+constexpr Rectangle bounds = {0.0f, 0.0f, 2000.0f, 1250.0f};
 constexpr size_t extraButtons = 7;
 
 CustomizeState::CustomizeState() {
@@ -50,11 +51,13 @@ CustomizeState::CustomizeState() {
 
    updateResponsiveness();
 
-   player.position = getScreenCenter();
+   player.position = getOrigin({bounds.width, bounds.height});
    player.iconID = 0;
    player.primaryColorID = 0;
    player.secondaryColorID = 0;
-   player.init();
+   player.init(bounds);
+
+   camera.init(&player, bounds, player.position, 1.0f, 0.1f, 0.1f, 0.25f, 4.0f);
 }
 
 CustomizeState::~CustomizeState() {
@@ -62,8 +65,29 @@ CustomizeState::~CustomizeState() {
 }
 
 void CustomizeState::update() {
+   // Camera
+   float scrollDelta = GetMouseWheelMove();
+   if (scrollDelta >= 0.5f) {
+      camera.targetZoom -= GetFrameTime() * 6.0f;
+   }
+   else if (scrollDelta <= -0.5f) {
+      camera.targetZoom += GetFrameTime() * 6.0f;
+   }
+
+   if (IsKeyPressed(KEY_EQUAL)) {
+      camera.targetZoom -= 0.5f;
+   }
+   else if (IsKeyPressed(KEY_MINUS)) {
+      camera.targetZoom += 0.5f;
+   }
+
    if (backButton->clicked || handleKeyPressWithSound(KEY_ESCAPE)) {
-      fadingOut = true;
+      if (visible && tab != Tab::none) {
+         tab = Tab::none;
+      }
+      else {
+         fadingOut = true;
+      }
    }
 
    if (!visible) {
@@ -172,7 +196,10 @@ void CustomizeState::update() {
 }
 
 void CustomizeState::render() {
-   player.render();
+   BeginMode2D(camera.camera);
+      DrawRectanglePro(bounds, {0.0f, 0.0f}, 0.0f, DARKGRAY);
+      player.render();
+   EndMode2D();
    
    if (!visible) {
       hiddenButtons.render();
@@ -235,10 +262,13 @@ void CustomizeState::render() {
 
 void CustomizeState::fixedUpdate() {
    player.update();
+   camera.update();
 }
 
 void CustomizeState::updateResponsiveness() {
    float cr = getCubicRatio();
+
+   camera.camera.offset = getScreenCenter();
 
    backButton->position = {cr * 55.0f, cr * 55.0f};
    visibleButton->position = {cr * 55.0f, GetScreenHeight() - cr * 55.0f};

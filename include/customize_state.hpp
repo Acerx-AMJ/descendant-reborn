@@ -1,4 +1,5 @@
 #pragma once
+#include "camera.hpp"
 #include "navig.hpp"
 #include "player.hpp"
 #include "state.hpp"
@@ -18,6 +19,7 @@ private:
    enum class Tab {none, skin, primary, secondary};
    Tab tab = Tab::none;
 
+   CameraDR3 camera;
    Player player;
    Navigation skinButtons, colorButtons, hiddenButtons, noTabButtons;
    Button *backButton, *skinTab, *primaryTab, *secondaryTab, *hiddenButton, *visibleButton, *diceButton;

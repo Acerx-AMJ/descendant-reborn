@@ -5,7 +5,11 @@
 #include <raylib.h>
 #include <raymath.h>
 
-void Player::init() {
+void Player::init(Rectangle bounds) {
+   // we do this transformation to make collision against bounds two simple clamps
+   Vector2 origin = getOrigin(playerSize);
+   this->bounds = getRectangle(Vector2Add({bounds.x, bounds.y}, origin), Vector2Subtract({bounds.width, bounds.height}, playerSize));
+
    Shader shader = getShader("twocolor");
    primaryShaderLocation = GetShaderLocation(shader, "primary");
    secondaryShaderLocation = GetShaderLocation(shader, "secondary");
@@ -38,6 +42,8 @@ void Player::update() {
 
    Vector2 target = Vector2Scale(direction, playerSpeed);
    position = Vector2Add(position, target);
+   position.x = Clamp(position.x, bounds.x, bounds.x + bounds.width);
+   position.y = Clamp(position.y, bounds.y, bounds.y + bounds.height);
 }
 
 void Player::render() {
