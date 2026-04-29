@@ -1,11 +1,12 @@
 #include "data.hpp"
 #include "file.hpp"
+#include <fstream>
 #include <sstream>
 
 static std::vector<std::string> playerIconContainer;
 static std::vector<Vector3> playerColorContainer;
 
-// load data
+// game data module
 
 void loadData() {
    loadPlayerIcons();
@@ -49,8 +50,6 @@ void loadPlayerColors() {
    }
 }
 
-// get data
-
 size_t getPlayerIconCount() {
    return playerIconContainer.size();
 }
@@ -79,4 +78,44 @@ Vector3 getPlayerColor(size_t ID) {
 
 std::vector<Vector3> &getPlayerColorContainer() {
    return playerColorContainer;
+}
+
+// player data module
+
+static CustomizationData customizationData;
+
+CustomizationData getCustomizationData() {
+   return customizationData;
+}
+
+CustomizationData loadCustomizationData() {
+   CustomizationData data, loaded;
+   std::fstream file ("data/cd.data", std::ios::in);
+   if (!file.is_open()) {
+      return data; // default data
+   }
+   
+   file.read(reinterpret_cast<char*>(&loaded), sizeof(loaded));
+
+   if (data.magicNumber != loaded.magicNumber) {
+      return data; // default data
+   }
+   return loaded;
+}
+
+void saveCustomizationData(CustomizationData data) {
+   std::fstream file ("data/cd.data", std::ios::out);
+   if (!file.is_open()) {
+      return;
+   }
+   file.write(reinterpret_cast<const char*>(&data), sizeof(data));
+   customizationData = data;
+}
+
+void loadPlayerData() {
+   customizationData = loadCustomizationData();
+}
+
+void savePlayerData() {
+   saveCustomizationData(customizationData);
 }

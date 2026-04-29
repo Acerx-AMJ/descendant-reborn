@@ -51,17 +51,18 @@ CustomizeState::CustomizeState() {
 
    updateResponsiveness();
 
+   CustomizationData data = getCustomizationData();
    player.position = getOrigin({bounds.width, bounds.height});
-   player.iconID = 0;
-   player.primaryColorID = 0;
-   player.secondaryColorID = 0;
+   player.iconID = data.iconID;
+   player.primaryColorID = data.primaryColorID;
+   player.secondaryColorID = data.secondaryColorID;
    player.init(bounds);
 
    camera.init(&player, bounds, player.position, 1.0f, 0.1f, 0.1f, 0.25f, 4.0f);
 }
 
 CustomizeState::~CustomizeState() {
-
+   saveCustomizationData({player.iconID, player.primaryColorID, player.secondaryColorID});
 }
 
 void CustomizeState::update() {
