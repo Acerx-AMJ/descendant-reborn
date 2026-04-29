@@ -60,7 +60,7 @@ void Player::render() {
    SetShaderValue(shader, secondaryShaderLocation, &secondary, SHADER_UNIFORM_VEC3);
 
    BeginShaderMode(shader);
-      for (int i = shadowCount - 1; i >= 0; --i) {
+      for (int i = shadowCount - 1; shadowsEnabled && i >= 0; --i) {
          drawTextureCentered(texture, shadows[i].position, shadows[i].size, Fade(WHITE, shadows[i].alpha));
       }
 

@@ -22,7 +22,7 @@ private:
    CameraDR3 camera;
    Player player;
    Navigation skinButtons, colorButtons, hiddenButtons, noTabButtons;
-   Button *backButton, *skinTab, *primaryTab, *secondaryTab, *hiddenButton, *visibleButton, *diceButton;
+   Button *backButton, *skinTab, *primaryTab, *secondaryTab, *hiddenButton, *visibleButton, *diceButton, *shadowButton;
 
    int primaryShaderLocation = 0;
    int secondaryShaderLocation = 0;

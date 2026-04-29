@@ -29,6 +29,7 @@ struct Player {
 
    float playerSpeed = 5.0f;
    bool playerInitialized = false;
+   bool shadowsEnabled = true;
 
    int primaryShaderLocation = 0;
    int secondaryShaderLocation = 0;

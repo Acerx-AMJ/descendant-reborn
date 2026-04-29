@@ -4,7 +4,7 @@
 #include "menu_state.hpp"
 
 constexpr Rectangle bounds = {0.0f, 0.0f, 2000.0f, 1250.0f};
-constexpr size_t extraButtons = 7;
+constexpr size_t extraButtons = 8;
 
 CustomizeState::CustomizeState() {
    Shader shader = getShader("twocolor");
@@ -25,13 +25,14 @@ CustomizeState::CustomizeState() {
    hiddenButton = Button::make(hiddenTexture, {70.0f, 70.0f}),
    visibleButton = Button::make(visibleTexture, {70.0f, 70.0f}),
    diceButton = Button::make(diceTexture, {70.0f, 70.0f});
+   shadowButton = Button::make({}, {70.0f, 70.0f});
 
    skinButtons.addElements({backButton->copy(), skinTab->copy(), primaryTab->copy(),
-      secondaryTab->copy(), visibleButton->copy(), diceButton->copy(),});
+      secondaryTab->copy(), visibleButton->copy(), diceButton->copy(), shadowButton->copy()});
    colorButtons.addElements({backButton->copy(), skinTab->copy(), primaryTab->copy(),
-      secondaryTab->copy(), visibleButton->copy(), diceButton->copy(),});
+      secondaryTab->copy(), visibleButton->copy(), diceButton->copy(), shadowButton->copy()});
    hiddenButtons.addElements({hiddenButton});
-   noTabButtons.addElements({backButton, skinTab, primaryTab, secondaryTab, visibleButton, diceButton});
+   noTabButtons.addElements({backButton, skinTab, primaryTab, secondaryTab, visibleButton, diceButton, shadowButton});
 
    for (const std::string &icon: getPlayerIconContainer()) {
       TextureRect *rect = TextureRect::make(getTexture(icon), {70.0f, 70.0f});
@@ -56,13 +57,15 @@ CustomizeState::CustomizeState() {
    player.iconID = data.iconID;
    player.primaryColorID = data.primaryColorID;
    player.secondaryColorID = data.secondaryColorID;
+   player.shadowsEnabled = data.shadowsEnabled;
    player.init(bounds);
 
+   shadowButton->texture = getTexture(player.shadowsEnabled ? "shadows_enabled" : "shadows_disabled");
    camera.init(&player, bounds, player.position, 1.0f, 0.1f, 0.1f, 0.25f, 4.0f);
 }
 
 CustomizeState::~CustomizeState() {
-   saveCustomizationData({player.iconID, player.primaryColorID, player.secondaryColorID});
+   saveCustomizationData({player.iconID, player.primaryColorID, player.secondaryColorID, player.shadowsEnabled});
 }
 
 void CustomizeState::update() {
@@ -170,6 +173,11 @@ void CustomizeState::update() {
       visible = false;
    }
 
+   if (shadowButton->clicked || handleKeyPressWithSound(KEY_V)) {
+      player.shadowsEnabled = !player.shadowsEnabled;
+      shadowButton->texture = getTexture(player.shadowsEnabled ? "shadows_enabled" : "shadows_disabled");
+   }
+
    // Update tabs
    if (skinTab->clicked || handleKeyPressWithSound(KEY_ONE)) {
       tab = (tab == Tab::skin ? Tab::none : Tab::skin);
@@ -275,6 +283,7 @@ void CustomizeState::updateResponsiveness() {
    visibleButton->position = {cr * 55.0f, GetScreenHeight() - cr * 55.0f};
    hiddenButton->position = {cr * 55.0f, GetScreenHeight() - cr * 55.0f};
    diceButton->position = {cr * 145.0f, GetScreenHeight() - cr * 55.0f};
+   shadowButton->position = {cr * 235.0f, GetScreenHeight() - cr * 55.0f};
 
    skinTab->position = {GetScreenWidth() / 2.0f - 305.0f * cr, 70.0f * cr};
    primaryTab->position = {GetScreenWidth() / 2.0f, 70.0f * cr};
