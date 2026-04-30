@@ -25,6 +25,8 @@ private:
    Button *backButton, *skinTab, *primaryTab, *secondaryTab, *hiddenButton, *visibleButton, *diceButton, *shadowButton;
    TextInput *nameInput;
    std::string originalName;
+   size_t skinPage = 0;
+   size_t colorPage = 0;
 
    int primaryShaderLocation = 0;
    int secondaryShaderLocation = 0;

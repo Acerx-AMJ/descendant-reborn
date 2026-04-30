@@ -3,9 +3,13 @@
 #include "data.hpp"
 #include "input.hpp"
 #include "menu_state.hpp"
+#include <raymath.h>
 
 constexpr Rectangle bounds = {0.0f, 0.0f, 2000.0f, 1250.0f};
 constexpr size_t extraButtons = 9;
+constexpr size_t entriesPerColumn = 15;
+constexpr size_t entryColumns = 5;
+constexpr size_t entriesPerPage = entriesPerColumn * entryColumns;
 
 CustomizeState::CustomizeState() {
    Shader shader = getShader("twocolor");
@@ -195,6 +199,16 @@ void CustomizeState::update() {
       shadowButton->texture = getTexture(player.shadowsEnabled ? "shadows_enabled" : "shadows_disabled");
    }
 
+   // Update pages
+
+   if (skinButtons.anySelected() && skinButtons.getSelectedIndex() >= extraButtons) {
+      skinPage = (skinButtons.getSelectedIndex() - extraButtons) / entriesPerPage;
+   }
+
+   if (colorButtons.anySelected() && colorButtons.getSelectedIndex() >= extraButtons) {
+      colorPage = (colorButtons.getSelectedIndex() - extraButtons) / entriesPerPage;
+   }
+
    // Update tabs
    if (skinTab->clicked || handleKeyPressWithSound(KEY_ONE)) {
       tab = (tab == Tab::skin ? Tab::none : Tab::skin);
@@ -244,8 +258,13 @@ void CustomizeState::render() {
       SetShaderValue(shader, secondaryShaderLocation, &secondary, SHADER_UNIFORM_VEC3);
 
       BeginShaderMode(shader);
-         for (size_t i = extraButtons; i < skinButtons.elements.size(); ++i) {
+         size_t max = std::min(skinButtons.elements.size(), extraButtons + entriesPerPage * (skinPage + 1));
+         float offsetX = GetScreenWidth() * skinPage;
+         
+         for (size_t i = extraButtons + entriesPerPage * skinPage; i < max; ++i) {
+            skinButtons.getElement(i)->position.x -= offsetX;
             skinButtons.getElement(i)->render();
+            skinButtons.getElement(i)->position.x += offsetX;
          }
       EndShaderMode();
 
@@ -254,7 +273,18 @@ void CustomizeState::render() {
       }
    }
    else {
-      colorButtons.render();
+      size_t max = std::min(colorButtons.elements.size(), extraButtons + entriesPerPage * (colorPage + 1));
+      float offsetX = GetScreenWidth() * colorPage;
+
+      for (size_t i = extraButtons + entriesPerPage * colorPage; i < max; ++i) {
+         colorButtons.getElement(i)->position.x -= offsetX;
+         colorButtons.getElement(i)->render();
+         colorButtons.getElement(i)->position.x += offsetX;
+      }
+
+      for (size_t i = 1; i < extraButtons; ++i) {
+         colorButtons.getElement(i)->render();
+      }
    }
 
    Texture pointerTexture = getTexture("button_pointer");
@@ -275,15 +305,21 @@ void CustomizeState::render() {
 
    if (tab == Tab::skin && skinButtons.getSelectedIndex() >= extraButtons) {
       TextureRect *selected = skinButtons.getSelectedTextureRect();
-      float scale = getCubicRatio() * selected->scale;
-      drawTextureCentered(smallPointerTexture, selected->position, {74.375f * scale, 74.375f * scale}, WHITE);
+      // 64/y = 68/x; x = 68y/64; x = 1.0625y
+      // where 64 is the default texture size and 68 is the texture size of the button pointer,
+      // and where y is the size of the button, and x is the size of the pointer
+      float offsetX = GetScreenWidth() * skinPage;
+      float scale = getCubicRatio() * selected->scale * 1.0625f;
+      drawTextureCentered(smallPointerTexture, {selected->position.x - offsetX, selected->position.y}, Vector2Scale(selected->size, scale), WHITE);
    }
 
    if ((tab == Tab::primary || tab == Tab::secondary) && colorButtons.getSelectedIndex() >= extraButtons) {
       TextureRect *selected = colorButtons.getSelectedTextureRect();
-      float scale = getCubicRatio() * selected->scale;
-      drawTextureCentered(smallPointerTexture, selected->position, {74.375f * scale, 74.375f * scale}, WHITE);
+      float offsetX = GetScreenWidth() * colorPage;
+      float scale = getCubicRatio() * selected->scale * 1.0625f;
+      drawTextureCentered(smallPointerTexture, {selected->position.x - offsetX, selected->position.y}, Vector2Scale(selected->size, scale), WHITE);
    }
+   DrawText(TextFormat("ip: %lu cp: %lu", skinPage, colorPage), 50, 50, 50, RED);
 }
 
 void CustomizeState::fixedUpdate() {
@@ -307,33 +343,58 @@ void CustomizeState::updateResponsiveness() {
    primaryTab->position = {GetScreenWidth() / 2.0f, 70.0f * cr};
    secondaryTab->position = {GetScreenWidth() / 2.0f + 305.0f * cr, 70.0f * cr};
 
-   float positionX = cr * 50.0f;
+   float workingWidth = GetScreenWidth() - 200.0f * cr;
+   float singleEntrySizeWithPadding = workingWidth / entriesPerColumn;
+   float singleEntrySize = singleEntrySizeWithPadding * (6.0f / 7.0f);
+   float singleEntrySizeTranslated = singleEntrySize / cr;
+
+   float positionX = cr * 100.0f + singleEntrySize / 2.0f;
    float positionY = cr * 215.0f;
 
    for (size_t i = extraButtons; i < skinButtons.elements.size(); ++i) {
       TextureRect *button = skinButtons.getTextureRect(i);
       button->ID = i - extraButtons;
       button->position = {positionX, positionY};
+      button->size = {singleEntrySizeTranslated, singleEntrySizeTranslated};
 
-      positionX += 90.0f * cr;
-      if (positionX >= GetScreenWidth() - 40.0f * cr) {
-         positionX = 50.0f * cr;
-         positionY += 90.0f * cr;
+      positionX += singleEntrySizeWithPadding;
+      size_t index = i - extraButtons + 1;
+      
+      if (index % entriesPerColumn == 0) {
+         float screens = GetScreenWidth() * size_t(index / entriesPerPage);
+         positionX = cr * 100.0f + singleEntrySize / 2.0f + screens;
+         positionY += singleEntrySizeWithPadding;
+      }
+
+      if (index % entriesPerPage == 0) {
+         float screens = GetScreenWidth() * size_t(index / entriesPerPage);
+         positionX = cr * 100.0f + singleEntrySize / 2.0f + screens;
+         positionY = cr * 215.0f;
       }
    }
 
-   positionX = cr * 50.0f;
+   positionX = cr * 100.0f + singleEntrySize / 2.0f;
    positionY = cr * 215.0f;
 
    for (size_t i = extraButtons; i < colorButtons.elements.size(); ++i) {
       TextureRect *button = colorButtons.getTextureRect(i);
       button->ID = i - extraButtons;
       button->position = {positionX, positionY};
+      button->size = {singleEntrySizeTranslated, singleEntrySizeTranslated};
 
-      positionX += 90.0f * cr;
-      if (positionX >= GetScreenWidth() - 40.0f * cr) {
-         positionX = 50.0f * cr;
-         positionY += 90.0f * cr;
+      positionX += singleEntrySizeWithPadding;
+      size_t index = i - extraButtons + 1;
+      
+      if (index % entriesPerColumn == 0) {
+         float screens = GetScreenWidth() * size_t(index / entriesPerPage);
+         positionX = cr * 100.0f + singleEntrySize / 2.0f + screens;
+         positionY += singleEntrySizeWithPadding;
+      }
+
+      if (index % entriesPerPage == 0) {
+         float screens = GetScreenWidth() * size_t(index / entriesPerPage);
+         positionX = cr * 100.0f + singleEntrySize / 2.0f + screens;
+         positionY = cr * 215.0f;
       }
    }
 }
