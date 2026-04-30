@@ -1,13 +1,4 @@
 #include "navig.hpp"
-#include "sound.hpp"
-
-bool handleKeyPressWithSound(int key) {
-   if (IsKeyPressed(key)) {
-      playSound("click");
-      return true;
-   }
-   return false;
-}
 
 constexpr float holdDelay = 0.4f;
 constexpr float holdInterval = 0.1f;

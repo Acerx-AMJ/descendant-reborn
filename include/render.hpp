@@ -36,7 +36,7 @@ void drawTextureCentered(Texture texture, Vector2 position, Vector2 size, Color 
 
 struct UIElement {
    virtual ~UIElement() = default;
-   void update(bool navigHovering = false, bool navigDown = false, bool navigClicked = false);
+   virtual void update(bool navigHovering = false, bool navigDown = false, bool navigClicked = false);
    virtual void render() = 0;
    UIElement *copy();
 
@@ -53,6 +53,10 @@ struct UIElement {
    bool down = false;
    bool clicked = false;
    bool disabled = false;
+
+protected:
+
+   void updateInternalState(bool navigHovering, bool navigDown, bool navigClicked);
 };
 
 struct Button: public UIElement {
@@ -79,6 +83,22 @@ struct TextureRect: public UIElement {
 
    Texture texture;
    Color color;
+};
+
+struct TextInput: public UIElement {
+   static TextInput *make(Texture texture, Vector2 size, Font font, const std::string &fallback, size_t maxChars, float fontSize);
+   void init(Texture texture, Vector2 size, Font font, const std::string &fallback, size_t maxChars, float fontSize);
+
+   void update(bool navigHovering = false, bool navigDown = false, bool navigClicked = false) override;
+   void render() override;
+
+   Font font;
+   Texture texture;
+   std::string text, fallback;
+   size_t maxChars = (size_t)-1; // explicit overflow
+   float fontSize = 0.0f;
+   bool changed = false;
+   bool active = false;
 };
 
 void destroy(UIElement *element);

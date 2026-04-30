@@ -2,8 +2,6 @@
 #include "render.hpp"
 #include <vector>
 
-bool handleKeyPressWithSound(int key);
-
 struct Navigation {
    Navigation();
    ~Navigation();

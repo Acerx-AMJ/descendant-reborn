@@ -1,4 +1,5 @@
 #include "state.hpp"
+#include "input.hpp"
 #include <cmath>
 #include <raylib.h>
 
@@ -9,6 +10,7 @@ constexpr float fadeTime = 0.4f;
 void State::updateStateLogic() {
    int width = GetScreenWidth();
    int height = GetScreenHeight();
+   updateInput();
 
    if (width != lastWidth || height != lastHeight) {
       lastWidth = width;

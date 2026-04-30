@@ -23,6 +23,7 @@ private:
    Player player;
    Navigation skinButtons, colorButtons, hiddenButtons, noTabButtons;
    Button *backButton, *skinTab, *primaryTab, *secondaryTab, *hiddenButton, *visibleButton, *diceButton, *shadowButton;
+   TextInput *nameInput;
 
    int primaryShaderLocation = 0;
    int secondaryShaderLocation = 0;

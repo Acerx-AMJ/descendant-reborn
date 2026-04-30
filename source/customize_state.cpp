@@ -1,10 +1,11 @@
 #include "customize_state.hpp"
 #include "asset.hpp"
 #include "data.hpp"
+#include "input.hpp"
 #include "menu_state.hpp"
 
 constexpr Rectangle bounds = {0.0f, 0.0f, 2000.0f, 1250.0f};
-constexpr size_t extraButtons = 8;
+constexpr size_t extraButtons = 9;
 
 CustomizeState::CustomizeState() {
    Shader shader = getShader("twocolor");
@@ -14,6 +15,7 @@ CustomizeState::CustomizeState() {
    Font font = getFont("slackey");
    Texture backTexture = getTexture("back"),
            buttonTexture = getTexture("button"),
+           textInputTexture = getTexture("text_input"),
            hiddenTexture = getTexture("hidden"),
            visibleTexture = getTexture("visible"),
            diceTexture = getTexture("dice");
@@ -26,13 +28,15 @@ CustomizeState::CustomizeState() {
    visibleButton = Button::make(visibleTexture, {70.0f, 70.0f}),
    diceButton = Button::make(diceTexture, {70.0f, 70.0f});
    shadowButton = Button::make({}, {70.0f, 70.0f});
+   nameInput = TextInput::make(textInputTexture, {280.0f, 70.0f}, font, "Input your name...", 24, 25.0f);
 
-   skinButtons.addElements({backButton->copy(), skinTab->copy(), primaryTab->copy(),
-      secondaryTab->copy(), visibleButton->copy(), diceButton->copy(), shadowButton->copy()});
-   colorButtons.addElements({backButton->copy(), skinTab->copy(), primaryTab->copy(),
-      secondaryTab->copy(), visibleButton->copy(), diceButton->copy(), shadowButton->copy()});
+   skinButtons.addElements({backButton->copy(), skinTab->copy(), primaryTab->copy(), secondaryTab->copy(),
+      visibleButton->copy(), diceButton->copy(), shadowButton->copy(), nameInput->copy()});
+   colorButtons.addElements({backButton->copy(), skinTab->copy(), primaryTab->copy(), secondaryTab->copy(),
+      visibleButton->copy(), diceButton->copy(), shadowButton->copy(), nameInput->copy()});
    hiddenButtons.addElements({hiddenButton});
-   noTabButtons.addElements({backButton, skinTab, primaryTab, secondaryTab, visibleButton, diceButton, shadowButton});
+   noTabButtons.addElements({backButton, skinTab, primaryTab, secondaryTab, visibleButton, diceButton,
+      shadowButton, nameInput});
 
    for (const std::string &icon: getPlayerIconContainer()) {
       TextureRect *rect = TextureRect::make(getTexture(icon), {70.0f, 70.0f});
@@ -107,6 +111,8 @@ void CustomizeState::update() {
       }
       return;
    }
+
+   player.blockMovement = nameInput->active;
 
    // Update tab switching
    Tab lastTab = tab;
@@ -284,6 +290,7 @@ void CustomizeState::updateResponsiveness() {
    hiddenButton->position = {cr * 55.0f, GetScreenHeight() - cr * 55.0f};
    diceButton->position = {cr * 145.0f, GetScreenHeight() - cr * 55.0f};
    shadowButton->position = {cr * 235.0f, GetScreenHeight() - cr * 55.0f};
+   nameInput->position = {cr * 430.0f, GetScreenHeight() - cr * 55.0f};
 
    skinTab->position = {GetScreenWidth() / 2.0f - 305.0f * cr, 70.0f * cr};
    primaryTab->position = {GetScreenWidth() / 2.0f, 70.0f * cr};

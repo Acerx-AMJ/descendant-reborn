@@ -36,7 +36,7 @@ void Player::update() {
    float directionY = IsKeyDown(KEY_S) - IsKeyDown(KEY_W);
    direction = Vector2Normalize({directionX, directionY});
 
-   if ((direction.x == 0.0f && direction.y == 0.0f) || !playerInitialized) {
+   if ((direction.x == 0.0f && direction.y == 0.0f) || !playerInitialized || blockMovement) {
       return;
    }
 
