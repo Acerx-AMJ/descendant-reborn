@@ -6,7 +6,7 @@
 #include <raymath.h>
 
 constexpr Rectangle bounds = {0.0f, 0.0f, 2000.0f, 1250.0f};
-constexpr size_t extraButtons = 9;
+constexpr size_t extraButtons = 8;
 constexpr size_t entriesPerColumn = 15;
 constexpr size_t entryColumns = 5;
 constexpr size_t entriesPerPage = entriesPerColumn * entryColumns;
@@ -19,7 +19,6 @@ CustomizeState::CustomizeState() {
    Font font = getFont("slackey");
    Texture backTexture = getTexture("back"),
            buttonTexture = getTexture("button"),
-           textInputTexture = getTexture("text_input"),
            hiddenTexture = getTexture("hidden"),
            visibleTexture = getTexture("visible"),
            diceTexture = getTexture("dice");
@@ -32,15 +31,13 @@ CustomizeState::CustomizeState() {
    visibleButton = Button::make(visibleTexture, {70.0f, 70.0f}),
    diceButton = Button::make(diceTexture, {70.0f, 70.0f});
    shadowButton = Button::make({}, {70.0f, 70.0f});
-   nameInput = TextInput::make(textInputTexture, {280.0f, 70.0f}, font, "Input your name...", 24, 25.0f);
 
    skinButtons.addElements({backButton->copy(), skinTab->copy(), primaryTab->copy(), secondaryTab->copy(),
-      visibleButton->copy(), diceButton->copy(), shadowButton->copy(), nameInput->copy()});
+      visibleButton->copy(), diceButton->copy(), shadowButton->copy()});
    colorButtons.addElements({backButton->copy(), skinTab->copy(), primaryTab->copy(), secondaryTab->copy(),
-      visibleButton->copy(), diceButton->copy(), shadowButton->copy(), nameInput->copy()});
+      visibleButton->copy(), diceButton->copy(), shadowButton->copy()});
    hiddenButtons.addElements({hiddenButton});
-   noTabButtons.addElements({backButton, skinTab, primaryTab, secondaryTab, visibleButton, diceButton,
-      shadowButton, nameInput});
+   noTabButtons.addElements({backButton, skinTab, primaryTab, secondaryTab, visibleButton, diceButton, shadowButton});
 
    for (const std::string &icon: getPlayerIconContainer()) {
       TextureRect *rect = TextureRect::make(getTexture(icon), {70.0f, 70.0f});
@@ -68,13 +65,12 @@ CustomizeState::CustomizeState() {
    player.shadowsEnabled = data.shadowsEnabled;
    player.init(bounds);
 
-   originalName = nameInput->text = data.username;
    shadowButton->texture = getTexture(player.shadowsEnabled ? "shadows_enabled" : "shadows_disabled");
-   camera.init(&player, bounds, player.position, 1.0f, 0.1f, 0.1f, 0.25f, 4.0f);
+   camera.init(&player, bounds, player.position, 1.0f, 0.15f, 0.15f, 0.25f, 4.0f);
 }
 
 CustomizeState::~CustomizeState() {
-   saveCustomizationData({player.iconID, player.primaryColorID, player.secondaryColorID, player.shadowsEnabled, originalName});
+   saveCustomizationData({player.iconID, player.primaryColorID, player.secondaryColorID, player.shadowsEnabled});
 }
 
 void CustomizeState::update() {
@@ -142,12 +138,20 @@ void CustomizeState::update() {
    }
 
    // Update buttons
-   bool wasActive = nameInput->active;
-
    if (tab == Tab::skin) {
+      size_t max = std::min(skinButtons.elements.size(), extraButtons + entriesPerPage * (skinPage + 1));
+      float offsetX = GetScreenWidth() * skinPage;
+      
+      for (size_t i = extraButtons + entriesPerPage * skinPage; i < max; ++i) {
+         skinButtons.getElement(i)->position.x -= offsetX;
+      }
+
       skinButtons.update();
-      for (size_t i = extraButtons; i < skinButtons.elements.size(); ++i) {
+
+      for (size_t i = extraButtons + entriesPerPage * skinPage; i < max; ++i) {
          TextureRect *rect = skinButtons.getTextureRect(i);
+         rect->position.x += offsetX;
+
          if (rect->clicked) {
             player.iconID = rect->ID;
             skinButtons.setIndex(i);
@@ -155,9 +159,19 @@ void CustomizeState::update() {
       }
    }
    else if (tab != Tab::none) {
+      size_t max = std::min(colorButtons.elements.size(), extraButtons + entriesPerPage * (colorPage + 1));
+      float offsetX = GetScreenWidth() * colorPage;
+
+      for (size_t i = extraButtons + entriesPerPage * colorPage; i < max; ++i) {
+         colorButtons.getElement(i)->position.x -= offsetX;
+      }
+
       colorButtons.update();
-      for (size_t i = extraButtons; i < colorButtons.elements.size(); ++i) {
+
+      for (size_t i = extraButtons + entriesPerPage * colorPage; i < max; ++i) {
          TextureRect *rect = colorButtons.getTextureRect(i);
+         rect->position.x += offsetX;
+
          if (rect->clicked) {
             (tab == Tab::primary ? player.primaryColorID : player.secondaryColorID) = rect->ID;
             colorButtons.setIndex(i);
@@ -167,16 +181,6 @@ void CustomizeState::update() {
    else {
       noTabButtons.update();
    }
-
-   if (wasActive && !nameInput->active) {
-      if (nameInput->text.size() < 3) {
-         nameInput->text = originalName;
-      }
-      else {
-         originalName = nameInput->text;
-      }
-   }
-   player.blockMovement = nameInput->active;
 
    // Update corner buttons
    if (diceButton->clicked || handleKeyPressWithSound(KEY_R)) {
@@ -289,6 +293,7 @@ void CustomizeState::render() {
 
    Texture pointerTexture = getTexture("button_pointer");
    Texture smallPointerTexture = getTexture("button_pointer_small");
+   Font font = getFont("slackey");
    
    if (tab == Tab::skin) {
       float scale = getCubicRatio() * skinTab->scale;
@@ -319,7 +324,14 @@ void CustomizeState::render() {
       float scale = getCubicRatio() * selected->scale * 1.0625f;
       drawTextureCentered(smallPointerTexture, {selected->position.x - offsetX, selected->position.y}, Vector2Scale(selected->size, scale), WHITE);
    }
-   DrawText(TextFormat("ip: %lu cp: %lu", skinPage, colorPage), 50, 50, 50, RED);
+
+   if (tab != Tab::none) {
+      size_t page = (tab == Tab::skin ? skinPage : colorPage);
+      size_t maxPages = std::max(((tab == Tab::skin ? skinButtons : colorButtons).elements.size() - extraButtons) / entriesPerPage, 1UL);
+      float cr = getCubicRatio();
+      
+      drawTextCentered(font, {GetScreenWidth() - 110.0f * cr, GetScreenHeight() - 55.0f * cr}, TextFormat("%lu/%lu", page + 1, maxPages + 1), 50.0f, WHITE);
+   }
 }
 
 void CustomizeState::fixedUpdate() {
@@ -337,7 +349,6 @@ void CustomizeState::updateResponsiveness() {
    hiddenButton->position = {cr * 55.0f, GetScreenHeight() - cr * 55.0f};
    diceButton->position = {cr * 145.0f, GetScreenHeight() - cr * 55.0f};
    shadowButton->position = {cr * 235.0f, GetScreenHeight() - cr * 55.0f};
-   nameInput->position = {cr * 430.0f, GetScreenHeight() - cr * 55.0f};
 
    skinTab->position = {GetScreenWidth() / 2.0f - 305.0f * cr, 70.0f * cr};
    primaryTab->position = {GetScreenWidth() / 2.0f, 70.0f * cr};

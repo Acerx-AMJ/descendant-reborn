@@ -24,7 +24,6 @@ struct CustomizationData {
    size_t primaryColorID = 1;
    size_t secondaryColorID = 2;
    bool shadowsEnabled = true;
-   std::string username = "player";
 };
 
 CustomizationData getCustomizationData();

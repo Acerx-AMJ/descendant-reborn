@@ -95,8 +95,7 @@ CustomizationData loadCustomizationData() {
       return data; // default data
    }
    
-   file.read(reinterpret_cast<char*>(&data), sizeof(data) - sizeof(data.username));
-   file >> data.username;
+   file.read(reinterpret_cast<char*>(&data), sizeof(data));
    return data;
 }
 
@@ -105,8 +104,8 @@ void saveCustomizationData(CustomizationData data) {
    if (!file.is_open()) {
       return;
    }
-   file.write(reinterpret_cast<const char*>(&data), sizeof(data) - sizeof(data.username));
-   file << data.username;
+
+   file.write(reinterpret_cast<const char*>(&data), sizeof(data));
    customizationData = data;
 }
 

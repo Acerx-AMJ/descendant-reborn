@@ -23,8 +23,6 @@ private:
    Player player;
    Navigation skinButtons, colorButtons, hiddenButtons, noTabButtons;
    Button *backButton, *skinTab, *primaryTab, *secondaryTab, *hiddenButton, *visibleButton, *diceButton, *shadowButton;
-   TextInput *nameInput;
-   std::string originalName;
    size_t skinPage = 0;
    size_t colorPage = 0;
 
