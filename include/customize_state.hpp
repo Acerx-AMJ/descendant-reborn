@@ -24,6 +24,7 @@ private:
    Navigation skinButtons, colorButtons, hiddenButtons, noTabButtons;
    Button *backButton, *skinTab, *primaryTab, *secondaryTab, *hiddenButton, *visibleButton, *diceButton, *shadowButton;
    TextInput *nameInput;
+   std::string originalName;
 
    int primaryShaderLocation = 0;
    int secondaryShaderLocation = 0;

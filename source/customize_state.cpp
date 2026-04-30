@@ -64,12 +64,13 @@ CustomizeState::CustomizeState() {
    player.shadowsEnabled = data.shadowsEnabled;
    player.init(bounds);
 
+   originalName = nameInput->text = data.username;
    shadowButton->texture = getTexture(player.shadowsEnabled ? "shadows_enabled" : "shadows_disabled");
    camera.init(&player, bounds, player.position, 1.0f, 0.1f, 0.1f, 0.25f, 4.0f);
 }
 
 CustomizeState::~CustomizeState() {
-   saveCustomizationData({player.iconID, player.primaryColorID, player.secondaryColorID, player.shadowsEnabled});
+   saveCustomizationData({player.iconID, player.primaryColorID, player.secondaryColorID, player.shadowsEnabled, originalName});
 }
 
 void CustomizeState::update() {
@@ -112,8 +113,6 @@ void CustomizeState::update() {
       return;
    }
 
-   player.blockMovement = nameInput->active;
-
    // Update tab switching
    Tab lastTab = tab;
    if (handleKeyPressWithSound(KEY_LEFT_BRACKET)) {
@@ -139,6 +138,8 @@ void CustomizeState::update() {
    }
 
    // Update buttons
+   bool wasActive = nameInput->active;
+
    if (tab == Tab::skin) {
       skinButtons.update();
       for (size_t i = extraButtons; i < skinButtons.elements.size(); ++i) {
@@ -162,6 +163,16 @@ void CustomizeState::update() {
    else {
       noTabButtons.update();
    }
+
+   if (wasActive && !nameInput->active) {
+      if (nameInput->text.size() < 3) {
+         nameInput->text = originalName;
+      }
+      else {
+         originalName = nameInput->text;
+      }
+   }
+   player.blockMovement = nameInput->active;
 
    // Update corner buttons
    if (diceButton->clicked || handleKeyPressWithSound(KEY_R)) {

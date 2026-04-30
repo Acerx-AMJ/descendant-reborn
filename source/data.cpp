@@ -89,18 +89,15 @@ CustomizationData getCustomizationData() {
 }
 
 CustomizationData loadCustomizationData() {
-   CustomizationData data, loaded;
+   CustomizationData data;
    std::fstream file ("data/cd.data", std::ios::in);
    if (!file.is_open()) {
       return data; // default data
    }
    
-   file.read(reinterpret_cast<char*>(&loaded), sizeof(loaded));
-
-   if (data.magicNumber != loaded.magicNumber) {
-      return data; // default data
-   }
-   return loaded;
+   file.read(reinterpret_cast<char*>(&data), sizeof(data) - sizeof(data.username));
+   file >> data.username;
+   return data;
 }
 
 void saveCustomizationData(CustomizationData data) {
@@ -108,7 +105,8 @@ void saveCustomizationData(CustomizationData data) {
    if (!file.is_open()) {
       return;
    }
-   file.write(reinterpret_cast<const char*>(&data), sizeof(data));
+   file.write(reinterpret_cast<const char*>(&data), sizeof(data) - sizeof(data.username));
+   file << data.username;
    customizationData = data;
 }
 
