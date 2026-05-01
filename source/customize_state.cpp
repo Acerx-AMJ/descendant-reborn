@@ -39,6 +39,8 @@ CustomizeState::CustomizeState() {
    hiddenButtons.addElements({hiddenButton});
    noTabButtons.addElements({backButton, skinTab, primaryTab, secondaryTab, visibleButton, diceButton, shadowButton});
 
+   skinButtons.manualNavigationHandling = colorButtons.manualNavigationHandling = true;
+
    for (const std::string &icon: getPlayerIconContainer()) {
       TextureRect *rect = TextureRect::make(getTexture(icon), {70.0f, 70.0f});
       skinButtons.addElement(rect);
@@ -66,7 +68,7 @@ CustomizeState::CustomizeState() {
    player.init(bounds);
 
    shadowButton->texture = getTexture(player.shadowsEnabled ? "shadows_enabled" : "shadows_disabled");
-   camera.init(&player, bounds, player.position, 1.0f, 0.15f, 0.15f, 0.25f, 4.0f);
+   camera.init(&player, bounds, player.position, 0.75f, 0.15f, 0.15f, 0.25f, 4.0f);
 }
 
 CustomizeState::~CustomizeState() {
@@ -139,44 +141,11 @@ void CustomizeState::update() {
 
    // Update buttons
    if (tab == Tab::skin) {
-      size_t max = std::min(skinButtons.elements.size(), extraButtons + entriesPerPage * (skinPage + 1));
-      float offsetX = GetScreenWidth() * skinPage;
-      
-      for (size_t i = extraButtons + entriesPerPage * skinPage; i < max; ++i) {
-         skinButtons.getElement(i)->position.x -= offsetX;
-      }
-
-      skinButtons.update();
-
-      for (size_t i = extraButtons + entriesPerPage * skinPage; i < max; ++i) {
-         TextureRect *rect = skinButtons.getTextureRect(i);
-         rect->position.x += offsetX;
-
-         if (rect->clicked) {
-            player.iconID = rect->ID;
-            skinButtons.setIndex(i);
-         }
-      }
+      updateButtons(skinButtons, skinPage, player.iconID);
    }
    else if (tab != Tab::none) {
-      size_t max = std::min(colorButtons.elements.size(), extraButtons + entriesPerPage * (colorPage + 1));
-      float offsetX = GetScreenWidth() * colorPage;
-
-      for (size_t i = extraButtons + entriesPerPage * colorPage; i < max; ++i) {
-         colorButtons.getElement(i)->position.x -= offsetX;
-      }
-
-      colorButtons.update();
-
-      for (size_t i = extraButtons + entriesPerPage * colorPage; i < max; ++i) {
-         TextureRect *rect = colorButtons.getTextureRect(i);
-         rect->position.x += offsetX;
-
-         if (rect->clicked) {
-            (tab == Tab::primary ? player.primaryColorID : player.secondaryColorID) = rect->ID;
-            colorButtons.setIndex(i);
-         }
-      }
+      size_t &ID = tab == Tab::primary ? player.primaryColorID : player.secondaryColorID;
+      updateButtons(colorButtons, colorPage, ID);
    }
    else {
       noTabButtons.update();
@@ -203,16 +172,6 @@ void CustomizeState::update() {
       shadowButton->texture = getTexture(player.shadowsEnabled ? "shadows_enabled" : "shadows_disabled");
    }
 
-   // Update pages
-
-   if (skinButtons.anySelected() && skinButtons.getSelectedIndex() >= extraButtons) {
-      skinPage = (skinButtons.getSelectedIndex() - extraButtons) / entriesPerPage;
-   }
-
-   if (colorButtons.anySelected() && colorButtons.getSelectedIndex() >= extraButtons) {
-      colorPage = (colorButtons.getSelectedIndex() - extraButtons) / entriesPerPage;
-   }
-
    // Update tabs
    if (skinTab->clicked || handleKeyPressWithSound(KEY_ONE)) {
       tab = (tab == Tab::skin ? Tab::none : Tab::skin);
@@ -236,6 +195,16 @@ void CustomizeState::update() {
 
    if (lastTab != tab && tab == Tab::secondary) {
       colorButtons.setIndex(extraButtons + player.secondaryColorID);
+   }
+
+   // Update pages
+
+   if (skinButtons.anySelected() && skinButtons.getSelectedIndex() >= extraButtons) {
+      skinPage = (skinButtons.getSelectedIndex() - extraButtons) / entriesPerPage;
+   }
+
+   if (colorButtons.anySelected() && colorButtons.getSelectedIndex() >= extraButtons) {
+      colorPage = (colorButtons.getSelectedIndex() - extraButtons) / entriesPerPage;
    }
 }
 
@@ -331,6 +300,68 @@ void CustomizeState::render() {
       float cr = getCubicRatio();
       
       drawTextCentered(font, {GetScreenWidth() - 110.0f * cr, GetScreenHeight() - 55.0f * cr}, TextFormat("%lu/%lu", page + 1, maxPages + 1), 50.0f, WHITE);
+   }
+}
+
+void CustomizeState::updateButtons(Navigation &navig, size_t page, size_t &ID) {
+   navig.manualNavigationHandling = /* false;// */ navig.getSelectedIndex() >= extraButtons;
+   
+   size_t max = std::min(navig.elements.size(), extraButtons + entriesPerPage * (page + 1));
+   float offsetX = GetScreenWidth() * page;
+
+   for (size_t i = extraButtons + entriesPerPage * page; i < max; ++i) {
+      navig.getElement(i)->position.x -= offsetX;
+   }
+
+   navig.update();
+
+   size_t index = navig.index - extraButtons;
+   if (navig.manualNavigationHandling) {
+      // don't touch this masterpiece, it works
+      if (navig.shouldGoLeft) {
+         if (index % entriesPerColumn == 0 && index < entriesPerPage) {
+            navig.index = extraButtons;
+         }
+         else if (index % entriesPerColumn == 0) {
+            navig.index = navig.index - entriesPerPage + entriesPerColumn;
+         }
+
+         navig.index -= 1;
+      }
+      else if (navig.shouldGoRight) {
+         if ((index + 1) % entriesPerColumn == 0) {
+            navig.index = navig.index + entriesPerPage - entriesPerColumn;
+         }
+         navig.index = std::min(navig.index + 1, navig.elements.size() - 1);
+      }
+      else if (navig.shouldGoDown) {
+         size_t row = (index % entriesPerPage) / entriesPerColumn;
+         if (row == entryColumns - 1 || navig.index + entriesPerColumn >= navig.elements.size()) {
+            navig.index = 5; // visible/hidden button
+         }
+         else {
+            navig.index += entriesPerColumn;
+         }
+      }
+      else if (navig.shouldGoUp) {
+         size_t row = (index % entriesPerPage) / entriesPerColumn;
+         if (row == 0) {
+            navig.index = 1; // back button
+         }
+         else {
+            navig.index -= entriesPerColumn;
+         }
+      }
+   }
+
+   for (size_t i = extraButtons + entriesPerPage * page; i < max; ++i) {
+      TextureRect *rect = navig.getTextureRect(i);
+      rect->position.x += offsetX;
+
+      if (rect->clicked) {
+         ID = rect->ID;
+         navig.setIndex(i);
+      }
    }
 }
 

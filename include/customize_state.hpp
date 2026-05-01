@@ -14,6 +14,8 @@ struct CustomizeState: public State {
    void updateResponsiveness() override;
    State *change() override;
 
+   void updateButtons(Navigation &navig, size_t page, size_t &ID);
+
 private:
 
    enum class Tab {none, skin, primary, secondary};

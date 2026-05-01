@@ -16,10 +16,12 @@ Navigation::~Navigation() {
 void Navigation::update() {
    size_t previous = index;
 
-   bool shouldGoUp = IsKeyPressed(KEY_UP);
-   bool shouldGoDown = IsKeyPressed(KEY_DOWN);
+   shouldGoUp = IsKeyPressed(KEY_UP);
+   shouldGoDown = IsKeyPressed(KEY_DOWN);
+   shouldGoLeft = IsKeyPressed(KEY_LEFT);
+   shouldGoRight = IsKeyPressed(KEY_RIGHT);
 
-   if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_DOWN)) {
+   if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT)) {
       holdTimer += GetFrameTime();
 
       if (!holding) {
@@ -33,6 +35,8 @@ void Navigation::update() {
             intervalTimer -= holdInterval;
             if (IsKeyDown(KEY_UP)) shouldGoUp = true;
             if (IsKeyDown(KEY_DOWN)) shouldGoDown = true;
+            if (IsKeyDown(KEY_LEFT)) shouldGoLeft = true;
+            if (IsKeyDown(KEY_RIGHT)) shouldGoRight = true;
          }
       }
    }
@@ -40,11 +44,11 @@ void Navigation::update() {
       holding = false;
    }
 
-   if (shouldGoUp) {
+   if (!manualNavigationHandling && (shouldGoUp || shouldGoLeft)) {
       index = (index == 0 ? elements.size() - 1 : index - 1);
    }
 
-   if (shouldGoDown) {
+   if (!manualNavigationHandling && (shouldGoDown || shouldGoRight)) {
       index = (index + 1) % elements.size();
    }
 

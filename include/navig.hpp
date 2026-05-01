@@ -37,8 +37,13 @@ struct Navigation {
    size_t first = 0;
    size_t last = 1;
 
+   bool manualNavigationHandling = false;
    bool changed = false;
    bool holding = false;
+   bool shouldGoUp = false;
+   bool shouldGoDown = false;
+   bool shouldGoLeft = false;
+   bool shouldGoRight = false;
 
    float holdTimer = 0.0f;
    float intervalTimer = 0.0f;
