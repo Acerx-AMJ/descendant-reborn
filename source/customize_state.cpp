@@ -98,6 +98,21 @@ void CustomizeState::update() {
       }
    }
 
+   // Update corner buttons
+   if (diceButton->clicked || handleKeyPressWithSound(KEY_R)) {
+      player.iconID = rand() % getPlayerIconCount();
+      player.primaryColorID = rand() % getPlayerColorCount();
+      player.secondaryColorID = rand() % getPlayerColorCount();
+
+      skinButtons.setIndex(extraButtons + player.iconID);
+      colorButtons.setIndex(extraButtons + (tab == Tab::primary ? player.primaryColorID : player.secondaryColorID));
+   }
+
+   if (shadowButton->clicked || handleKeyPressWithSound(KEY_V)) {
+      player.shadowsEnabled = !player.shadowsEnabled;
+      shadowButton->texture = getTexture(player.shadowsEnabled ? "shadows_enabled" : "shadows_disabled");
+   }
+
    if (!visible) {
       hiddenButtons.update();
 
@@ -110,6 +125,12 @@ void CustomizeState::update() {
          visible = true;
       }
       return;
+   }
+
+   if (visibleButton->clicked || handleKeyPressWithSound(KEY_H)) {
+      hiddenButtons.setIndex(1);
+      visibleButton->texture = getTexture("hidden");
+      visible = false;
    }
 
    // Update tab switching
@@ -146,27 +167,6 @@ void CustomizeState::update() {
    }
    else {
       noTabButtons.update();
-   }
-
-   // Update corner buttons
-   if (diceButton->clicked || handleKeyPressWithSound(KEY_R)) {
-      player.iconID = rand() % getPlayerIconCount();
-      player.primaryColorID = rand() % getPlayerColorCount();
-      player.secondaryColorID = rand() % getPlayerColorCount();
-
-      skinButtons.setIndex(extraButtons + player.iconID);
-      colorButtons.setIndex(extraButtons + (tab == Tab::primary ? player.primaryColorID : player.secondaryColorID));
-   }
-
-   if (visibleButton->clicked || handleKeyPressWithSound(KEY_H)) {
-      hiddenButtons.setIndex(1);
-      visibleButton->texture = getTexture("hidden");
-      visible = false;
-   }
-
-   if (shadowButton->clicked || handleKeyPressWithSound(KEY_V)) {
-      player.shadowsEnabled = !player.shadowsEnabled;
-      shadowButton->texture = getTexture(player.shadowsEnabled ? "shadows_enabled" : "shadows_disabled");
    }
 
    // Update tabs
