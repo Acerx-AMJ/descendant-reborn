@@ -6,7 +6,7 @@
 #include <raymath.h>
 
 constexpr Rectangle bounds = {0.0f, 0.0f, 2000.0f, 1250.0f};
-constexpr size_t extraButtons = 8;
+constexpr size_t extraButtons = 10;
 constexpr size_t entriesPerColumn = 15;
 constexpr size_t entryColumns = 5;
 constexpr size_t entriesPerPage = entriesPerColumn * entryColumns;
@@ -17,29 +17,25 @@ CustomizeState::CustomizeState() {
    secondaryShaderLocation = GetShaderLocation(shader, "secondary");
 
    Font font = getFont("slackey");
-   Texture backTexture = getTexture("back"),
-           buttonTexture = getTexture("button"),
-           hiddenTexture = getTexture("hidden"),
-           visibleTexture = getTexture("visible"),
-           diceTexture = getTexture("dice");
+   Texture buttonTexture = getTexture("button");
 
-   backButton = Button::make(backTexture, {70.0f, 70.0f}),
+   backButton = Button::make(getTexture("back"), {70.0f, 70.0f}),
    skinTab = Button::make(buttonTexture, {300.0f, 100.0f}, font, "SKIN", 50.0f),
    primaryTab = Button::make(buttonTexture, {300.0f, 100.0f}, font, "PRIMARY", 50.0f),
    secondaryTab = Button::make(buttonTexture, {300.0f, 100.0f}, font, "SECONDARY", 50.0f),
-   hiddenButton = Button::make(hiddenTexture, {70.0f, 70.0f}),
-   visibleButton = Button::make(visibleTexture, {70.0f, 70.0f}),
-   diceButton = Button::make(diceTexture, {70.0f, 70.0f});
+   hiddenButton = Button::make(getTexture("hidden"), {70.0f, 70.0f}),
+   visibleButton = Button::make(getTexture("visible"), {70.0f, 70.0f}),
+   diceButton = Button::make(getTexture("dice"), {70.0f, 70.0f});
    shadowButton = Button::make({}, {70.0f, 70.0f});
+   prevPageButton = Button::make(getTexture("pointer_left"), {40.0f, 40.0f});
+   nextPageButton = Button::make(getTexture("pointer_right"), {40.0f, 40.0f});
 
    skinButtons.addElements({backButton->copy(), skinTab->copy(), primaryTab->copy(), secondaryTab->copy(),
-      visibleButton->copy(), diceButton->copy(), shadowButton->copy()});
+      visibleButton->copy(), diceButton->copy(), shadowButton->copy(), prevPageButton, nextPageButton->copy()});
    colorButtons.addElements({backButton->copy(), skinTab->copy(), primaryTab->copy(), secondaryTab->copy(),
-      visibleButton->copy(), diceButton->copy(), shadowButton->copy()});
-   hiddenButtons.addElements({hiddenButton});
+      visibleButton->copy(), diceButton->copy(), shadowButton->copy(), prevPageButton->copy(), nextPageButton});
    noTabButtons.addElements({backButton, skinTab, primaryTab, secondaryTab, visibleButton, diceButton, shadowButton});
-
-   skinButtons.manualNavigationHandling = colorButtons.manualNavigationHandling = true;
+   hiddenButtons.addElements({hiddenButton});
 
    for (const std::string &icon: getPlayerIconContainer()) {
       TextureRect *rect = TextureRect::make(getTexture(icon), {70.0f, 70.0f});
@@ -93,7 +89,8 @@ void CustomizeState::update() {
    }
 
    if (backButton->clicked || handleKeyPressWithSound(KEY_ESCAPE)) {
-      if (visible && tab != Tab::none) {
+      // only on escape
+      if (visible && !backButton->clicked && tab != Tab::none) {
          tab = Tab::none;
       }
       else {
@@ -199,12 +196,91 @@ void CustomizeState::update() {
 
    // Update pages
 
-   if (skinButtons.anySelected() && skinButtons.getSelectedIndex() >= extraButtons) {
-      skinPage = (skinButtons.getSelectedIndex() - extraButtons) / entriesPerPage;
+   if (tab != Tab::none) {
+      Navigation &navig = (tab == Tab::skin ? skinButtons : colorButtons);
+
+      if (prevPageButton->clicked && navig.index >= extraButtons) {
+         if (navig.index - extraButtons < entriesPerPage) {
+            navig.index = extraButtons;
+         }
+         else {
+            navig.index -= entriesPerPage;
+         }
+      }
+
+      if (nextPageButton->clicked && navig.index >= extraButtons) {
+         navig.index = std::min(navig.elements.size() - 1, navig.index + entriesPerPage);
+      }
    }
 
-   if (colorButtons.anySelected() && colorButtons.getSelectedIndex() >= extraButtons) {
-      colorPage = (colorButtons.getSelectedIndex() - extraButtons) / entriesPerPage;
+   if (skinButtons.anySelected() && skinButtons.index >= extraButtons) {
+      skinPage = (skinButtons.index - extraButtons) / entriesPerPage;
+   }
+
+   if (colorButtons.anySelected() && colorButtons.index >= extraButtons) {
+      colorPage = (colorButtons.index - extraButtons) / entriesPerPage;
+   }
+}
+
+void CustomizeState::updateButtons(Navigation &navig, size_t page, size_t &ID) {
+   navig.manualNavigationHandling = /* false;// */ navig.index >= extraButtons;
+   
+   size_t max = std::min(navig.elements.size(), extraButtons + entriesPerPage * (page + 1));
+   float offsetX = GetScreenWidth() * page;
+
+   for (size_t i = extraButtons + entriesPerPage * page; i < max; ++i) {
+      navig.getElement(i)->position.x -= offsetX;
+   }
+
+   navig.update();
+
+   size_t index = navig.index - extraButtons;
+   if (navig.manualNavigationHandling) {
+      // don't touch this masterpiece, it works
+      if (navig.shouldGoLeft) {
+         if (index % entriesPerColumn == 0 && index < entriesPerPage) {
+            navig.index = extraButtons;
+         }
+         else if (index % entriesPerColumn == 0) {
+            navig.index = navig.index - entriesPerPage + entriesPerColumn;
+         }
+
+         navig.index -= 1;
+      }
+      else if (navig.shouldGoRight) {
+         if ((index + 1) % entriesPerColumn == 0) {
+            navig.index = navig.index + entriesPerPage - entriesPerColumn;
+         }
+         navig.index = std::min(navig.index + 1, navig.elements.size() - 1);
+      }
+      else if (navig.shouldGoDown) {
+         size_t row = (index % entriesPerPage) / entriesPerColumn;
+         if (row == entryColumns - 1 || navig.index + entriesPerColumn >= navig.elements.size()) {
+            navig.index = 5; // visible/hidden button
+         }
+         else {
+            navig.index += entriesPerColumn;
+         }
+      }
+      else if (navig.shouldGoUp) {
+         size_t row = (index % entriesPerPage) / entriesPerColumn;
+         if (row == 0) {
+            navig.index = 1; // back button
+         }
+         else {
+            navig.index -= entriesPerColumn;
+         }
+      }
+   }
+
+   for (size_t i = extraButtons + entriesPerPage * page; i < max; ++i) {
+      TextureRect *rect = navig.getTextureRect(i);
+      rect->position.x += offsetX;
+
+      if (rect->clicked) {
+         ID = rect->ID;
+         navig.setIndex(i);
+      }
    }
 }
 
@@ -277,7 +353,7 @@ void CustomizeState::render() {
       drawTextureCentered(pointerTexture, secondaryTab->position, {318.75f * scale, 106.25f * scale}, WHITE);
    }
 
-   if (tab == Tab::skin && skinButtons.getSelectedIndex() >= extraButtons) {
+   if (tab == Tab::skin && skinButtons.index >= extraButtons) {
       TextureRect *selected = skinButtons.getSelectedTextureRect();
       // 64/y = 68/x; x = 68y/64; x = 1.0625y
       // where 64 is the default texture size and 68 is the texture size of the button pointer,
@@ -287,7 +363,7 @@ void CustomizeState::render() {
       drawTextureCentered(smallPointerTexture, {selected->position.x - offsetX, selected->position.y}, Vector2Scale(selected->size, scale), WHITE);
    }
 
-   if ((tab == Tab::primary || tab == Tab::secondary) && colorButtons.getSelectedIndex() >= extraButtons) {
+   if ((tab == Tab::primary || tab == Tab::secondary) && colorButtons.index >= extraButtons) {
       TextureRect *selected = colorButtons.getSelectedTextureRect();
       float offsetX = GetScreenWidth() * colorPage;
       float scale = getCubicRatio() * selected->scale * 1.0625f;
@@ -296,72 +372,10 @@ void CustomizeState::render() {
 
    if (tab != Tab::none) {
       size_t page = (tab == Tab::skin ? skinPage : colorPage);
-      size_t maxPages = std::max(((tab == Tab::skin ? skinButtons : colorButtons).elements.size() - extraButtons) / entriesPerPage, 1UL);
+      size_t maxPages = ((tab == Tab::skin ? skinButtons : colorButtons).elements.size() - extraButtons) / entriesPerPage;
       float cr = getCubicRatio();
-      
-      drawTextCentered(font, {GetScreenWidth() - 110.0f * cr, GetScreenHeight() - 55.0f * cr}, TextFormat("%lu/%lu", page + 1, maxPages + 1), 50.0f, WHITE);
-   }
-}
 
-void CustomizeState::updateButtons(Navigation &navig, size_t page, size_t &ID) {
-   navig.manualNavigationHandling = /* false;// */ navig.getSelectedIndex() >= extraButtons;
-   
-   size_t max = std::min(navig.elements.size(), extraButtons + entriesPerPage * (page + 1));
-   float offsetX = GetScreenWidth() * page;
-
-   for (size_t i = extraButtons + entriesPerPage * page; i < max; ++i) {
-      navig.getElement(i)->position.x -= offsetX;
-   }
-
-   navig.update();
-
-   size_t index = navig.index - extraButtons;
-   if (navig.manualNavigationHandling) {
-      // don't touch this masterpiece, it works
-      if (navig.shouldGoLeft) {
-         if (index % entriesPerColumn == 0 && index < entriesPerPage) {
-            navig.index = extraButtons;
-         }
-         else if (index % entriesPerColumn == 0) {
-            navig.index = navig.index - entriesPerPage + entriesPerColumn;
-         }
-
-         navig.index -= 1;
-      }
-      else if (navig.shouldGoRight) {
-         if ((index + 1) % entriesPerColumn == 0) {
-            navig.index = navig.index + entriesPerPage - entriesPerColumn;
-         }
-         navig.index = std::min(navig.index + 1, navig.elements.size() - 1);
-      }
-      else if (navig.shouldGoDown) {
-         size_t row = (index % entriesPerPage) / entriesPerColumn;
-         if (row == entryColumns - 1 || navig.index + entriesPerColumn >= navig.elements.size()) {
-            navig.index = 5; // visible/hidden button
-         }
-         else {
-            navig.index += entriesPerColumn;
-         }
-      }
-      else if (navig.shouldGoUp) {
-         size_t row = (index % entriesPerPage) / entriesPerColumn;
-         if (row == 0) {
-            navig.index = 1; // back button
-         }
-         else {
-            navig.index -= entriesPerColumn;
-         }
-      }
-   }
-
-   for (size_t i = extraButtons + entriesPerPage * page; i < max; ++i) {
-      TextureRect *rect = navig.getTextureRect(i);
-      rect->position.x += offsetX;
-
-      if (rect->clicked) {
-         ID = rect->ID;
-         navig.setIndex(i);
-      }
+      drawTextCentered(font, {getScreenCenter().x, GetScreenHeight() - 55.0f * cr}, TextFormat("%lu/%lu", page + 1, maxPages + 1), 50.0f, WHITE);
    }
 }
 
@@ -380,6 +394,9 @@ void CustomizeState::updateResponsiveness() {
    hiddenButton->position = {cr * 55.0f, GetScreenHeight() - cr * 55.0f};
    diceButton->position = {cr * 145.0f, GetScreenHeight() - cr * 55.0f};
    shadowButton->position = {cr * 235.0f, GetScreenHeight() - cr * 55.0f};
+
+   prevPageButton->position = {getScreenCenter().x - 125.0f * cr, GetScreenHeight() - 55.0f * cr};
+   nextPageButton->position = {getScreenCenter().x + 125.0f * cr, GetScreenHeight() - 55.0f * cr};
 
    skinTab->position = {GetScreenWidth() / 2.0f - 305.0f * cr, 70.0f * cr};
    primaryTab->position = {GetScreenWidth() / 2.0f, 70.0f * cr};

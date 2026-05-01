@@ -24,7 +24,8 @@ private:
    CameraDR3 camera;
    Player player;
    Navigation skinButtons, colorButtons, hiddenButtons, noTabButtons;
-   Button *backButton, *skinTab, *primaryTab, *secondaryTab, *hiddenButton, *visibleButton, *diceButton, *shadowButton;
+   Button *backButton, *skinTab, *primaryTab, *secondaryTab, *hiddenButton, *visibleButton, *diceButton,
+      *shadowButton, *prevPageButton, *nextPageButton;
    size_t skinPage = 0;
    size_t colorPage = 0;
 

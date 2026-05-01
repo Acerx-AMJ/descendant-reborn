@@ -54,12 +54,12 @@ void MenuState::fixedUpdate() {
 }
 
 void MenuState::updateResponsiveness() {
-   float hr = getHeightRatio();
+   float cr = getCubicRatio();
 
-   playButton->position = getScreenCenterOffset({0.0f, -100.0f * hr});
-   editorButton->position = getScreenCenterOffset({0.0f, 20.0f * hr});
-   customizeButton->position = getScreenCenterOffset({0.0f, 140.0f * hr});
-   quitButton->position = getScreenCenterOffset({0.0f, 260.0f * hr});
+   playButton->position = getScreenCenterOffset({0.0f, -100.0f * cr});
+   editorButton->position = getScreenCenterOffset({0.0f, 20.0f * cr});
+   customizeButton->position = getScreenCenterOffset({0.0f, 140.0f * cr});
+   quitButton->position = getScreenCenterOffset({0.0f, 260.0f * cr});
 }
 
 State *MenuState::change() {

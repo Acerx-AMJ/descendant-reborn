@@ -60,8 +60,8 @@ void LoadingState::render() {
    Font font = getFont("slackey");
    Texture icon = getTexture("loading");
 
-   drawTextCentered(font, getScreenCenterOffset({0.0f, getHeightRatio() * -175.0f}), finalLoadingText.c_str(), 80, WHITE);
-   drawTextCentered(font, getScreenCenterOffset({0.0f, getHeightRatio() * 100.0f}), splash.c_str(), 40, WHITE);
+   drawTextCentered(font, getScreenCenterOffset({0.0f, getCubicRatio() * -175.0f}), finalLoadingText.c_str(), 80, WHITE);
+   drawTextCentered(font, getScreenCenterOffset({0.0f, getCubicRatio() * 100.0f}), splash.c_str(), 40, WHITE);
    drawTextureCentered(icon, getScreenCenter(), cubicSize(70.0f), WHITE, iconRotation);
 }
 
