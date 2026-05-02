@@ -1,0 +1,5 @@
+# Empty lines and lines starting with "#" are ignored.
+# List of the chapter names. Order is preserved.
+
+My chapter
+Empty chapter

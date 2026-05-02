@@ -13,6 +13,7 @@ int main() {
    SetWindowMinSize(minWindowWidth, minWindowHeight);
    InitAudioDevice();
    SetExitKey(KEY_NULL);
+   SetTraceLogLevel(LOG_ERROR);
 
    State *current = new LoadingState();
 
