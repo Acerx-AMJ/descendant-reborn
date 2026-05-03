@@ -1,0 +1,15 @@
+# Empty lines and lines starting with "#" are ignored.
+
+[DEFAULT]
+tsize=64
+width=1
+height=1
+type=solid
+[END]
+
+texture=dice
+[END]
+
+type=coin
+texture=visible
+[END]

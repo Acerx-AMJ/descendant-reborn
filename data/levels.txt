@@ -1,10 +1,13 @@
 # Empty lines and lines starting with "#" are ignored.
 
+[DEFAULT]
+coinTile=dice
+[END]
+
 name=My Level
 chapter=My chapter
-coinTile=dice
-sizeX=8
-sizeY=8
+width=8
+height=8
 floor=0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 map=0 1 0 2 2 2 3 3 3 0 0 0 0 0 0 0 0 0 0 0 0 4 4 4 5 5 5 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 [END]
