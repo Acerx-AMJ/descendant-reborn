@@ -1,6 +1,7 @@
 #include "menu_state.hpp"
 #include "asset.hpp"
 #include "customize_state.hpp"
+#include "game_state.hpp"
 
 MenuState::MenuState() {
    Texture buttonTexture = getTexture("button");
@@ -19,7 +20,8 @@ void MenuState::update() {
    titleButtons.update();
 
    if (playButton->clicked) {
-
+      phase = Phase::play;
+      fadingOut = true;
    }
 
    if (editorButton->clicked) {
@@ -65,6 +67,9 @@ void MenuState::updateResponsiveness() {
 State *MenuState::change() {
    if (phase == Phase::customize) {
       return new CustomizeState();
+   }
+   else if (phase == Phase::play) {
+      return new GameState();
    }
 
    return nullptr;

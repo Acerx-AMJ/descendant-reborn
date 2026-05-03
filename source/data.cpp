@@ -11,7 +11,7 @@ static std::vector<std::string> chapterContainer;
 static std::vector<Level> levelContainer;
 static std::vector<Tile> tileContainer;
 
-static std::unordered_map<std::string_view, size_t> tileNameMap;
+static std::unordered_map<std::string, size_t> tileNameMap;
 
 // game data module
 
@@ -99,7 +99,7 @@ void loadLevels() {
          continue;
       }
 
-      Level level = defaulting ? defaultLevel : stack;
+      Level &level = defaulting ? defaultLevel : stack;
       std::string field = line.substr(0, equals);
       std::string value = line.substr(equals + 1);
       field.erase(field.find_last_not_of(" \n\r\t\v\f") + 1);
@@ -145,7 +145,7 @@ void loadLevels() {
          }
 
          if (stream.rdbuf()->in_avail() != 0) {
-            printf("WARNING: Malformed line: '%s'. Expected %lu number array. Fields 'sizeX' and 'sizeY' must be defined before fields 'floor' and 'map'.\n", line.c_str(), level.sizeX * level.sizeY);
+            printf("WARNING: Malformed line: '%s'. Expected %lu number array. Fields 'width' and 'height' must be defined before fields 'floor' and 'map'.\n", line.c_str(), level.sizeX * level.sizeY);
          }
       }
       else {
@@ -185,7 +185,7 @@ void loadTiles() {
          continue;
       }
 
-      Tile tile = defaulting ? defaultTile : stack;
+      Tile &tile = defaulting ? defaultTile : stack;
       std::string field = line.substr(0, equals);
       std::string value = line.substr(equals + 1);
       field.erase(field.find_last_not_of(" \n\r\t\v\f") + 1);
@@ -206,6 +206,9 @@ void loadTiles() {
          }
          else if (value == "coin") {
             tile.type = Tile::Type::coin;
+         }
+         else if (value == "finish") {
+            tile.type = Tile::Type::finish;
          }
          else {
             printf("WARNING: Malformed line: '%s'. Invalid type '%s'.\n", line.c_str(), value.c_str());

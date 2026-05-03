@@ -5,7 +5,12 @@
 #include <raylib.h>
 #include <raymath.h>
 
-void Player::init(Rectangle bounds) {
+void Player::init(Rectangle bounds, CustomizationData data) {
+   iconID = data.iconID;
+   primaryColorID = data.primaryColorID;
+   secondaryColorID = data.secondaryColorID;
+   shadowsEnabled = data.shadowsEnabled;
+
    // we do this transformation to make collision against bounds two simple clamps
    Vector2 origin = getOrigin(playerSize);
    this->bounds = getRectangle(Vector2Add({bounds.x, bounds.y}, origin), Vector2Subtract({bounds.width, bounds.height}, playerSize));

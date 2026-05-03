@@ -55,16 +55,11 @@ CustomizeState::CustomizeState() {
 
    updateResponsiveness();
 
-   CustomizationData data = getCustomizationData();
    player.position = getOrigin({bounds.width, bounds.height});
-   player.iconID = data.iconID;
-   player.primaryColorID = data.primaryColorID;
-   player.secondaryColorID = data.secondaryColorID;
-   player.shadowsEnabled = data.shadowsEnabled;
-   player.init(bounds);
+   player.init(bounds, getCustomizationData());
 
    shadowButton->texture = getTexture(player.shadowsEnabled ? "shadows_enabled" : "shadows_disabled");
-   camera.init(&player, bounds, player.position, 0.75f, 0.15f, 0.15f, 0.25f, 4.0f);
+   camera.init(&player, bounds, player.position, 0.75f, 0.25f, 4.0f);
 }
 
 CustomizeState::~CustomizeState() {
@@ -72,21 +67,7 @@ CustomizeState::~CustomizeState() {
 }
 
 void CustomizeState::update() {
-   // Camera
-   float scrollDelta = GetMouseWheelMove();
-   if (scrollDelta >= 0.5f) {
-      camera.targetZoom -= GetFrameTime() * 6.0f;
-   }
-   else if (scrollDelta <= -0.5f) {
-      camera.targetZoom += GetFrameTime() * 6.0f;
-   }
-
-   if (IsKeyPressed(KEY_EQUAL)) {
-      camera.targetZoom -= 0.5f;
-   }
-   else if (IsKeyPressed(KEY_MINUS)) {
-      camera.targetZoom += 0.5f;
-   }
+   camera.updateControls();
 
    if (backButton->clicked || handleKeyPressWithSound(KEY_ESCAPE)) {
       // only on escape

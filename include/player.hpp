@@ -1,4 +1,5 @@
 #pragma once
+#include "data.hpp"
 #include <array>
 #include <raylib.h>
 
@@ -6,7 +7,7 @@ static inline constexpr std::size_t shadowCount = 3;
 static inline constexpr Vector2 playerSize = {50.0f, 50.0f};
 
 struct Player {
-   void init(Rectangle bounds);
+   void init(Rectangle bounds, CustomizationData data);
    void update(); // to be called in 'fixedUpdate'
    void render();
 

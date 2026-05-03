@@ -13,3 +13,7 @@ texture=dice
 type=coin
 texture=visible
 [END]
+
+type=finish
+texture=hidden
+[END]

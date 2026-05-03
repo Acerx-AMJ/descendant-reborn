@@ -17,7 +17,7 @@ struct Level {
 
 struct Tile {
    enum class TileType: char {root, ghost, none};
-   enum class Type: char {solid, coin};
+   enum class Type: char {solid, coin, finish};
 
    TileType tileType = TileType::none;
    Type type = Type::solid;

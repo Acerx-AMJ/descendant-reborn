@@ -1,9 +1,14 @@
 #include "camera.hpp"
+#include "input.hpp"
 #include "math.hpp"
 #include "render.hpp"
 #include <raymath.h>
 
-void CameraDR3::init(Player *lock, Rectangle bounds, Vector2 center, float zoom, float lerpSpeed, float zoomSpeed, float zoomMin, float zoomMax) {
+constexpr float shakeFrequency = 1.0f / 20.0f;
+constexpr float lerpSpeed = 0.15f;
+constexpr float zoomSpeed = 0.15f;
+
+void CameraDR3::init(Player *lock, Rectangle bounds, Vector2 center, float zoom, float zoomMin, float zoomMax) {
    camera.target = center;
    camera.offset = getScreenCenter();
    camera.rotation = 0.0f;
@@ -11,16 +16,13 @@ void CameraDR3::init(Player *lock, Rectangle bounds, Vector2 center, float zoom,
    this->lock = lock;
    this->bounds = bounds;
    this->targetZoom = zoom;
-   this->lerpSpeed = lerpSpeed;
-   this->zoomSpeed = zoomSpeed;
    this->zoomMin = zoomMin;
    this->zoomMax = zoomMax;
 }
 
-void CameraDR3::shake(float strenght, float length, float frequency) {
+void CameraDR3::shake(float strenght, float length) {
    shakeStrength = strenght;
    shakeTimer = length;
-   shakeFrequency = 1.0f / frequency;
 }
 
 void CameraDR3::update() {
@@ -73,5 +75,22 @@ void CameraDR3::update() {
 
    if (newZoom != camera.zoom) {
       camera.zoom = Clamp(newZoom, zoomMin, zoomMax);
+   }
+}
+
+void CameraDR3::updateControls() {
+   float scrollDelta = GetMouseWheelMove();
+   if (scrollDelta >= 0.5f) {
+      targetZoom *= 1.0f - GetFrameTime() * 6.0f;
+   }
+   else if (scrollDelta <= -0.5f) {
+      targetZoom *= 1.0f + GetFrameTime() * 6.0f;
+   }
+
+   if (isKeyRepeated(KEY_EQUAL)) {
+      targetZoom *= 0.7f;
+   }
+   else if (isKeyRepeated(KEY_MINUS)) {
+      targetZoom *= 1.3f;
    }
 }
