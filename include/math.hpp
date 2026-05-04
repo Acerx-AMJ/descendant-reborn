@@ -1,6 +1,17 @@
 #pragma once
 #include <cstdlib>
+#include <raylib.h>
 #include <vector>
+
+template<typename T, typename U>
+constexpr inline Vector2 V2(T x, U y) {
+   return {(float)x, (float)y};
+}
+
+template<typename T>
+constexpr inline Vector2 V2(T value) {
+   return {(float)value, (float)value};
+}
 
 inline int randomInt(int min, int max) {
    return min + (rand() % (max - min + 1));

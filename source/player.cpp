@@ -1,6 +1,8 @@
 #include "player.hpp"
 #include "asset.hpp"
 #include "data.hpp"
+#include "map.hpp"
+#include "math.hpp"
 #include "render.hpp"
 #include <raylib.h>
 #include <raymath.h>
@@ -45,10 +47,119 @@ void Player::update() {
       return;
    }
 
-   Vector2 target = Vector2Scale(direction, playerSpeed);
-   position = Vector2Add(position, target);
+   position = Vector2Add(position, Vector2Scale(direction, playerSpeed));
    position.x = Clamp(position.x, bounds.x, bounds.x + bounds.width);
    position.y = Clamp(position.y, bounds.y, bounds.y + bounds.height);
+}
+
+void Player::update(Map &map) {
+   if (Vector2DistanceSqr(shadows.back().position, position) > 1.0f) {
+      for (std::size_t i = 0; i < shadowCount; ++i) {
+         shadows[i].position = Vector2Lerp(shadows[i].position, position, 0.0458f * (shadowCount - i));
+      }
+   }
+   
+   float directionX = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);
+   float directionY = IsKeyDown(KEY_S) - IsKeyDown(KEY_W);
+   direction = Vector2Normalize({directionX, directionY});
+
+   if (!playerInitialized || blockMovement) {
+      return;
+   }
+
+   if (direction.x != 0.0f) {
+      position.x += direction.x * playerSpeed;
+      position.x = Clamp(position.x, bounds.x, bounds.x + bounds.width);
+      Rectangle playerBounds = getRectangle(position - getOrigin(playerSize), playerSize);
+      size_t startX = playerBounds.x / tileSize;
+      size_t startY = playerBounds.y / tileSize;
+      size_t endX = fmin(startX + 2, map.sizeX - 1);
+      size_t endY = fmin(startY + 2, map.sizeY - 1);
+
+      for (size_t y = startY; y <= endY; ++y)  {
+         for (size_t x = startX; x <= endX; ++x) {
+            Tile tile = map.tiles[y][x];
+            if (tile.tileType == Tile::TileType::none) {
+               continue;
+            }
+
+            Vector2 pos = V2(x, y);
+            Vector2 size = V2(1.0f, 1.0f);
+
+            if (tile.tileType == Tile::TileType::ghost) {
+               pos = tile.rootPosition;
+               tile = map.tiles[pos.y][pos.x];
+               size = V2(tile.width, tile.height);
+            }
+
+            Rectangle tileBounds = getRectangle(pos * tileSize, size * tileSize);
+            if (!CheckCollisionRecs(playerBounds, tileBounds)) {
+               continue;
+            }
+
+            if (tile.type == Tile::Type::coin) {
+               map.removeTile(x, y);
+               map.collectedCoins += 1;
+            }
+
+            if (tile.type == Tile::Type::finish) {
+
+            }
+
+            if (tile.type == Tile::Type::solid) {
+               playerBounds.x = (tileBounds.x > playerBounds.x ? tileBounds.x - playerBounds.width : tileBounds.x + tileBounds.width);
+            }
+         }
+      }
+      position.x = playerBounds.x + playerSize.x / 2.0f;
+   }
+
+   if (direction.y != 0.0f) {
+      position.y += direction.y * playerSpeed;
+      position.y = Clamp(position.y, bounds.y, bounds.y + bounds.height);
+      Rectangle playerBounds = getRectangle(position - getOrigin(playerSize), playerSize);
+      size_t startX = playerBounds.x / tileSize;
+      size_t startY = playerBounds.y / tileSize;
+      size_t endX = fmin(startX + 2, map.sizeX - 1);
+      size_t endY = fmin(startY + 2, map.sizeY - 1);
+
+      for (size_t y = startY; y <= endY; ++y)  {
+         for (size_t x = startX; x <= endX; ++x) {
+            Tile tile = map.tiles[y][x];
+            if (tile.tileType == Tile::TileType::none) {
+               continue;
+            }
+
+            Vector2 pos = V2(x, y);
+            Vector2 size = V2(1.0f, 1.0f);
+
+            if (tile.tileType == Tile::TileType::ghost) {
+               pos = tile.rootPosition;
+               tile = map.tiles[pos.y][pos.x];
+               size = V2(tile.width, tile.height);
+            }
+
+            Rectangle tileBounds = getRectangle(pos * tileSize, size * tileSize);
+            if (!CheckCollisionRecs(playerBounds, tileBounds)) {
+               continue;
+            }
+
+            if (tile.type == Tile::Type::coin) {
+               map.removeTile(x, y);
+               map.collectedCoins += 1;
+            }
+
+            if (tile.type == Tile::Type::finish) {
+
+            }
+
+            if (tile.type == Tile::Type::solid) {
+               playerBounds.y = (tileBounds.y > playerBounds.y ? tileBounds.y - playerBounds.height : tileBounds.y + tileBounds.height);
+            }
+         }
+      }
+      position.y = playerBounds.y + playerSize.y / 2.0f;
+   }
 }
 
 void Player::render() {

@@ -55,8 +55,8 @@ void Map::init(const Level &level, CameraDR3 &camera, Player &player) {
                   continue;
                }
 
-               tiles[yy][xx].tileType = Tile::TileType::ghost;
-               tiles[yy][xx].rootPosition = {(float)x, (float)y};
+               tiles[yy + y][xx + x].tileType = Tile::TileType::ghost;
+               tiles[yy + y][xx + x].rootPosition = {(float)x, (float)y};
             }
          }
       }
@@ -131,7 +131,7 @@ void Map::render(Player &player, const Rectangle &bounds) {
          Tile &tile = floor[y][x];
 
          if (tile.tileType == Tile::TileType::root) {
-            drawTexture(*tile.texture, Vector2Scale({(float)x, (float)y}, tileSize), Vector2Scale({(float)tile.width, (float)tile.height}, tileSize), floorColor);
+            drawTexture(*tile.texture, V2(x, y) * tileSize, V2(tile.width, tile.height) * tileSize, floorColor);
          }
          else if (tile.tileType == Tile::TileType::ghost && (tile.rootPosition.x < bounds.x || tile.rootPosition.y < bounds.y)) {
             Vector2 pos = tile.rootPosition;
@@ -141,7 +141,7 @@ void Map::render(Player &player, const Rectangle &bounds) {
 
             drawnRootTiles.insert(pos);
             Tile &tile = floor[pos.y][pos.x];
-            drawTexture(*tile.texture, Vector2Scale(pos, tileSize), Vector2Scale({(float)tile.width, (float)tile.height}, tileSize), floorColor);
+            drawTexture(*tile.texture, pos * tileSize, V2(tile.width, tile.height) * tileSize, floorColor);
          }
       }
    }
@@ -152,7 +152,7 @@ void Map::render(Player &player, const Rectangle &bounds) {
          Tile &tile = tiles[y][x];
 
          if (tile.tileType == Tile::TileType::root) {
-            drawTexture(*tile.texture, Vector2Scale({(float)x, (float)y}, tileSize), Vector2Scale({(float)tile.width, (float)tile.height}, tileSize), WHITE);
+            drawTexture(*tile.texture, V2(x, y) * tileSize, V2(tile.width, tile.height) * tileSize, WHITE);
          }
          else if (tile.tileType == Tile::TileType::ghost && (tile.rootPosition.x < bounds.x || tile.rootPosition.y < bounds.y)) {
             Vector2 pos = tile.rootPosition;
@@ -162,10 +162,37 @@ void Map::render(Player &player, const Rectangle &bounds) {
 
             drawnRootTiles.insert(pos);
             Tile &tile = tiles[pos.y][pos.x];
-            drawTexture(*tile.texture, Vector2Scale(pos, tileSize), Vector2Scale({(float)tile.width, (float)tile.height}, tileSize), WHITE);
+            drawTexture(*tile.texture, pos * tileSize, V2(tile.width, tile.height) * tileSize, WHITE);
          }
       }
    }
 
    player.render();
+}
+
+void Map::removeTile(size_t x, size_t y) {
+   // safe guard against ghost tiles
+   if (tiles[y][x].tileType == Tile::TileType::ghost) {
+      Vector2 rootPosition = tiles[y][x].rootPosition;
+      x = rootPosition.x;
+      y = rootPosition.y;
+   }
+
+   Vector2 rootPosition = V2(x, y);
+   tiles[y][x] = {};
+
+   for (size_t yy = y; yy < sizeY; ++yy) {
+      for (size_t xx = x; xx < sizeX; ++xx) {
+         // skip root tile
+         if (yy == y && xx == x) {
+            continue;
+         }
+
+         Tile &tile = tiles[yy][xx];
+         if (tile.tileType != Tile::TileType::ghost || tile.rootPosition != rootPosition) {
+            break;
+         }
+         tile = {};
+      }
+   }
 }

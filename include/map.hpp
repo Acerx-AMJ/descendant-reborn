@@ -19,9 +19,15 @@ struct Map {
    void init(const Level &level, CameraDR3 &camera, Player &player);
    void render(Player &player, const Rectangle &bounds);
 
+   // utillity
+
+   // remove a tile including its ghost tiles. position supplied does not have to be the root position
+   void removeTile(size_t x, size_t y);
+
    std::string name;
    std::string chapter;
    size_t coinCount = 0;
+   size_t collectedCoins = 0;
    size_t coinTile = 0;
    size_t sizeX = 0;
    size_t sizeY = 0;

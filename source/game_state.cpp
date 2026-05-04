@@ -1,4 +1,5 @@
 #include "game_state.hpp"
+#include "asset.hpp"
 #include "data.hpp"
 #include "render.hpp"
 #include <raymath.h>
@@ -18,8 +19,8 @@ void GameState::setup(const Level &level) {
 
 void GameState::calculateCameraBounds() {
    Camera2D cam = camera.camera;
-   Vector2 pos = Vector2DivideValue(GetScreenToWorld2D({0.0f, 0.0f}, cam), tileSize);
-   Vector2 size = Vector2DivideValue(Vector2DivideValue(getScreenSize(), cam.zoom), tileSize);
+   Vector2 pos = GetScreenToWorld2D({0.0f, 0.0f}, cam) / tileSize;
+   Vector2 size = getScreenSize() / cam.zoom / tileSize;
 
    cameraBounds.x = fmax(0, int(pos.x));
    cameraBounds.y = fmax(0, int(pos.y));
@@ -32,13 +33,17 @@ void GameState::update() {
 }
 
 void GameState::render() {
+   // game world
    BeginMode2D(camera.camera);
       map.render(player, cameraBounds);
    EndMode2D();
+
+   // ui
+   drawTextCentered(getFont("slackey"), getScreenCenter(), TextFormat("%lu/%lu", map.collectedCoins, map.coinCount), 50.0f, WHITE);
 }
 
 void GameState::fixedUpdate() {
-   player.update();
+   player.update(map);
    camera.update();
    calculateCameraBounds();
 }

@@ -204,7 +204,7 @@ void CustomizeState::update() {
 }
 
 void CustomizeState::updateButtons(Navigation &navig, size_t page, size_t &ID) {
-   navig.manualNavigationHandling = /* false;// */ navig.index >= extraButtons;
+   navig.manualNavigationHandling = navig.index >= extraButtons;
    
    size_t max = std::min(navig.elements.size(), extraButtons + entriesPerPage * (page + 1));
    float offsetX = GetScreenWidth() * page;
