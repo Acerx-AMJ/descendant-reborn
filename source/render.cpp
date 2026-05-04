@@ -77,6 +77,12 @@ void drawTextCentered(Font font, Vector2 position, const char *text, float fontS
    DrawTextPro(font, text, position, getTextOrigin(font, text, fontSizeScaled, spacingScaled), 0.0f, fontSizeScaled, spacingScaled, color);
 }
 
+void drawTextSemiCentered(Font font, Vector2 position, const char *text, float fontSize, Color color) {
+   float fontSizeScaled = getFontSize(fontSize);
+   float spacingScaled = getFontSize(1.0f);
+   DrawTextPro(font, text, position, {0.0f, getTextOrigin(font, text, fontSizeScaled, spacingScaled).y}, 0.0f, fontSizeScaled, spacingScaled, color);
+}
+
 void drawTextRatio(Font font, Vector2 ratio, const char *text, float fontSize, Color color) {
    DrawTextPro(font, text, translateRatioToScreen(ratio), {0.0f, 0.0f}, 0.0f, getFontSize(fontSize), getFontSize(1.0f), color);
 }
@@ -97,8 +103,6 @@ void drawTextureCentered(Texture texture, Vector2 position, Vector2 size, Color 
 
 // ui module
 
-constexpr Color disabledColor = {170, 170, 150, 255};
-
 void UIElement::update(bool navigHovering, bool navigDown, bool navigClicked) {
    updateInternalState(navigHovering, navigDown, navigClicked);
 }
@@ -109,17 +113,11 @@ void UIElement::updateInternalState(bool navigHovering, bool navigDown, bool nav
    Vector2 realPosition = Vector2Subtract(position, getOrigin(scaledSize));
    bool actuallyHovering = CheckCollisionPointRec(mouse, getRectangle(realPosition, scaledSize));
    bool wasHovering = hovering;
-   hovering = actuallyHovering || navigHovering;
-   setMouseOnUI(actuallyHovering);
 
-   if (disabled) {
-      down = false;
-      clicked = false;
-   }
-   else {
-      down = navigDown || (actuallyHovering && IsMouseButtonDown(MOUSE_BUTTON_LEFT));
-      clicked = navigClicked || (actuallyHovering && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
-   }
+   hovering = actuallyHovering || navigHovering;
+   down = navigDown || (actuallyHovering && IsMouseButtonDown(MOUSE_BUTTON_LEFT));
+   clicked = navigClicked || (actuallyHovering && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
+   setMouseOnUI(actuallyHovering);
 
    float dt = GetFrameTime();
    if (down) {
@@ -177,12 +175,37 @@ void Button::init(Texture texture, Vector2 size) {
 }
 
 void Button::render() {
-   Color tint = disabled ? disabledColor : WHITE;
-   drawTextureCentered(texture, position, Vector2Scale(size, scale * getCubicRatio()), tint);
+   drawTextureCentered(texture, position, Vector2Scale(size, scale * getCubicRatio()), WHITE);
 
    if (!text.empty()) {
-      drawTextCentered(font, position, text.c_str(), fontSize * scale, tint);
+      drawTextCentered(font, position, text.c_str(), fontSize * scale, WHITE);
    }
+}
+
+Text *Text::make(Font font, const std::string &text, float fontSize) {
+   Text *element = new Text();
+   element->init(font, text, fontSize);
+   return element;
+}
+
+void Text::init(Font font, const std::string &text, float fontSize) {
+   this->font = font;
+   this->text = text;
+   this->fontSize = fontSize;
+}
+
+void Text::update(bool navigHovering, bool navigDown, bool navigClicked) {
+   size = getTextSize(font, text.c_str(), getFontSize(fontSize), getFontSize(1.0f));
+   position.x += size.x / 2.0f;
+   updateInternalState(navigHovering, navigDown, navigClicked);
+   position.x -= size.x / 2.0f;
+
+   Color target = hovering ? WHITE : fadedTextColor;
+   color = ColorLerp(color, target, GetFrameTime() * 5.0f);
+}
+
+void Text::render() {
+   drawTextSemiCentered(font, position, text.c_str(), fontSize * scale, color);
 }
 
 TextureRect *TextureRect::make(Texture texture, Vector2 size) {
@@ -219,8 +242,7 @@ void TextureRect::render() {
       return;
    }
 
-   Color tint = disabled ? disabledColor : WHITE;
-   drawTextureCentered(texture, position, Vector2Scale(size, scale * getCubicRatio()), tint);
+   drawTextureCentered(texture, position, Vector2Scale(size, scale * getCubicRatio()), WHITE);
 }
 
 TextInput *TextInput::make(Texture texture, Vector2 size, Font font, const std::string &fallback, size_t maxChars, float fontSize) {
@@ -244,17 +266,11 @@ void TextInput::update(bool navigHovering, bool navigDown, bool navigClicked) {
    Vector2 realPosition = Vector2Subtract(position, getOrigin(scaledSize));
    bool actuallyHovering = CheckCollisionPointRec(mouse, getRectangle(realPosition, scaledSize));
    bool wasHovering = hovering;
-   hovering = actuallyHovering || navigHovering;
-   setMouseOnUI(actuallyHovering);
 
-   if (disabled) {
-      down = false;
-      clicked = false;
-   }
-   else {
-      down = navigDown || (actuallyHovering && IsMouseButtonDown(MOUSE_BUTTON_LEFT));
-      clicked = navigClicked || (actuallyHovering && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
-   }
+   hovering = actuallyHovering || navigHovering;
+   down = navigDown || (actuallyHovering && IsMouseButtonDown(MOUSE_BUTTON_LEFT));
+   clicked = navigClicked || (actuallyHovering && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
+   setMouseOnUI(actuallyHovering);
 
    float dt = GetFrameTime();
    if (active) {
@@ -307,10 +323,10 @@ void TextInput::update(bool navigHovering, bool navigDown, bool navigClicked) {
 }
 
 void TextInput::render() {
-   Color tint = disabled ? disabledColor : WHITE;
-   drawTextureCentered(texture, position, Vector2Scale(size, scale * getCubicRatio()), tint);
+   drawTextureCentered(texture, position, Vector2Scale(size, scale * getCubicRatio()), WHITE);
 
-   if (!disabled && active) {
+   Color tint = WHITE;
+   if (active) {
       unsigned char value = std::sin(GetTime() * 20.0f) * 55.0f + 200.0f;
       tint = {value, value, value, 255};
    }

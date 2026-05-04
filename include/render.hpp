@@ -27,6 +27,7 @@ Rectangle getRectangle(Vector2 position, Vector2 size);
 
 void drawText(Font font, Vector2 position, const char *text, float fontSize, Color color);
 void drawTextCentered(Font font, Vector2 position, const char *text, float fontSize, Color color);
+void drawTextSemiCentered(Font font, Vector2 position, const char *text, float fontSize, Color color);
 void drawTextRatio(Font font, Vector2 ratio, const char *text, float fontSize, Color color);
 void drawTextRatioCentered(Font font, Vector2 ratio, const char *text, float fontSize, Color color);
 void drawTexture(Texture texture, Vector2 position, Vector2 size, Color color, float rotation = 0.0f);
@@ -52,7 +53,6 @@ struct UIElement {
    bool hovering = false;
    bool down = false;
    bool clicked = false;
-   bool disabled = false;
 
 protected:
 
@@ -69,6 +69,21 @@ struct Button: public UIElement {
 
    Font font;
    Texture texture;
+   std::string text;
+   float fontSize = 0.0f;
+};
+
+constexpr Color fadedTextColor = {120, 120, 120, 255};
+
+struct Text: public UIElement {
+   static Text *make(Font font, const std::string &text, float fontSize);
+   void init(Font font, const std::string &text, float fontSize);
+
+   void update(bool navigHovering = false, bool navigDown = false, bool navigClicked = false) override;
+   void render() override;
+
+   Color color = fadedTextColor;
+   Font font;
    std::string text;
    float fontSize = 0.0f;
 };
