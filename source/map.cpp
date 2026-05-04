@@ -21,7 +21,7 @@ void Map::init(const Level &level, CameraDR3 &camera, Player &player) {
          }
 
          if (tileID == 1) {
-            spawnPositions.push_back({(float)x, (float)y});
+            spawnPositions.push_back(V2(x, y) * tileSize);
             continue;
          }
 
