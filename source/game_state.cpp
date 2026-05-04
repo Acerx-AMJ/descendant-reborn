@@ -2,13 +2,15 @@
 #include "data.hpp"
 
 GameState::GameState() {
-   player.position = {1250, 1250};
-   player.init({0, 0, 2500, 2500}, getCustomizationData());
-   camera.init(&player, {0, 0, 2500, 2500}, player.position, 0.75f, 0.25f, 4.0f);
+   setup(getLevel(0));
 }
 
 GameState::~GameState() {
 
+}
+
+void GameState::setup(const Level &level) {
+   map.init(level, camera, player);
 }
 
 void GameState::update() {
@@ -17,7 +19,7 @@ void GameState::update() {
 
 void GameState::render() {
    BeginMode2D(camera.camera);
-      player.render();
+      map.render(player);
    EndMode2D();
 }
 

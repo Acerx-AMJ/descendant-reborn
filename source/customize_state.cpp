@@ -19,12 +19,12 @@ CustomizeState::CustomizeState() {
    Font font = getFont("slackey");
    Texture buttonTexture = getTexture("button");
 
-   backButton = Button::make(getTexture("back"), {70.0f, 70.0f}),
-   skinTab = Button::make(buttonTexture, {300.0f, 100.0f}, font, "SKIN", 50.0f),
-   primaryTab = Button::make(buttonTexture, {300.0f, 100.0f}, font, "PRIMARY", 50.0f),
-   secondaryTab = Button::make(buttonTexture, {300.0f, 100.0f}, font, "SECONDARY", 50.0f),
-   hiddenButton = Button::make(getTexture("hidden"), {70.0f, 70.0f}),
-   visibleButton = Button::make(getTexture("visible"), {70.0f, 70.0f}),
+   backButton = Button::make(getTexture("back"), {70.0f, 70.0f});
+   skinTab = Button::make(buttonTexture, {300.0f, 100.0f}, font, "SKIN", 50.0f);
+   primaryTab = Button::make(buttonTexture, {300.0f, 100.0f}, font, "PRIMARY", 50.0f);
+   secondaryTab = Button::make(buttonTexture, {300.0f, 100.0f}, font, "SECONDARY", 50.0f);
+   hiddenButton = Button::make(getTexture("hidden"), {70.0f, 70.0f});
+   visibleButton = Button::make(getTexture("visible"), {70.0f, 70.0f});
    diceButton = Button::make(getTexture("dice"), {70.0f, 70.0f});
    shadowButton = Button::make({}, {70.0f, 70.0f});
    prevPageButton = Button::make(getTexture("pointer_left"), {40.0f, 40.0f});

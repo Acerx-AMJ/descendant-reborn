@@ -26,6 +26,7 @@ struct Tile {
    size_t width = 0;
    size_t height = 0;
    Texture2D *texture = nullptr;
+   Vector2 rootPosition;
 };
 
 void loadData();

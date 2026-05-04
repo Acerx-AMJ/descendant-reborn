@@ -256,15 +256,6 @@ void TextInput::update(bool navigHovering, bool navigDown, bool navigClicked) {
       clicked = navigClicked || (actuallyHovering && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
    }
 
-   if (disabled) {
-      down = false;
-      clicked = false;
-   }
-   else {
-      down = navigDown || (actuallyHovering && IsMouseButtonDown(MOUSE_BUTTON_LEFT));
-      clicked = navigClicked || (actuallyHovering && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
-   }
-
    float dt = GetFrameTime();
    if (active) {
       scale = fminf(scale + dt, scaleMax);

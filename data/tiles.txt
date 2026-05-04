@@ -17,3 +17,12 @@ texture=visible
 type=finish
 texture=hidden
 [END]
+
+texture=shadows_disabled
+width=3
+[END]
+
+texture=shadows_enabled
+width=2
+height=2
+[END]
