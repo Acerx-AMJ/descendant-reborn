@@ -4,6 +4,8 @@
 
 // math module
 
+Vector2 Vector2DivideValue(Vector2 vector, float value);
+
 float getWidthRatio();
 float getHeightRatio();
 float getCubicRatio();

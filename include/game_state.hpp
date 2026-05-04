@@ -8,6 +8,7 @@ struct GameState: public State {
    ~GameState();
 
    void setup(const Level &level);
+   void calculateCameraBounds();
 
    void update() override;
    void render() override;
@@ -18,6 +19,7 @@ struct GameState: public State {
 private:
 
    Player player;
+   Rectangle cameraBounds;
    CameraDR3 camera;
    Map map;
 };

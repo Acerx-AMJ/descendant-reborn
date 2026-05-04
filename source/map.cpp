@@ -5,8 +5,6 @@
 #include "render.hpp"
 #include <raymath.h>
 
-constexpr float tileSize = 50.0f;
-
 void Map::init(const Level &level, CameraDR3 &camera, Player &player) {
    Rectangle bounds = {0, 0, level.sizeX * tileSize, level.sizeY * tileSize};
    std::vector<Vector2> spawnPositions;
@@ -126,23 +124,45 @@ void Map::init(const Level &level, CameraDR3 &camera, Player &player) {
    sizeY = level.sizeY;
 }
 
-void Map::render(Player &player) {
-   for (size_t y = 0; y < sizeY; ++y) {
-      for (size_t x = 0; x < sizeX; ++x) {
+void Map::render(Player &player, const Rectangle &bounds) {
+   drawnRootTiles.clear();
+   for (size_t y = bounds.y; y <= bounds.height; ++y) {
+      for (size_t x = bounds.x; x <= bounds.width; ++x) {
          Tile &tile = floor[y][x];
 
          if (tile.tileType == Tile::TileType::root) {
-            drawTexture(*tile.texture, Vector2Scale({(float)x, (float)y}, tileSize), Vector2Scale({(float)tile.width, (float)tile.height}, tileSize), {95, 95, 135, 255});
+            drawTexture(*tile.texture, Vector2Scale({(float)x, (float)y}, tileSize), Vector2Scale({(float)tile.width, (float)tile.height}, tileSize), floorColor);
+         }
+         else if (tile.tileType == Tile::TileType::ghost && (tile.rootPosition.x < bounds.x || tile.rootPosition.y < bounds.y)) {
+            Vector2 pos = tile.rootPosition;
+            if (drawnRootTiles.count(pos)) {
+               continue;
+            }
+
+            drawnRootTiles.insert(pos);
+            Tile &tile = floor[pos.y][pos.x];
+            drawTexture(*tile.texture, Vector2Scale(pos, tileSize), Vector2Scale({(float)tile.width, (float)tile.height}, tileSize), floorColor);
          }
       }
    }
 
-   for (size_t y = 0; y < sizeY; ++y) {
-      for (size_t x = 0; x < sizeX; ++x) {
+   drawnRootTiles.clear();
+   for (size_t y = bounds.y; y <= bounds.height; ++y) {
+      for (size_t x = bounds.x; x <= bounds.width; ++x) {
          Tile &tile = tiles[y][x];
 
          if (tile.tileType == Tile::TileType::root) {
             drawTexture(*tile.texture, Vector2Scale({(float)x, (float)y}, tileSize), Vector2Scale({(float)tile.width, (float)tile.height}, tileSize), WHITE);
+         }
+         else if (tile.tileType == Tile::TileType::ghost && (tile.rootPosition.x < bounds.x || tile.rootPosition.y < bounds.y)) {
+            Vector2 pos = tile.rootPosition;
+            if (drawnRootTiles.count(pos)) {
+               continue;
+            }
+
+            drawnRootTiles.insert(pos);
+            Tile &tile = tiles[pos.y][pos.x];
+            drawTexture(*tile.texture, Vector2Scale(pos, tileSize), Vector2Scale({(float)tile.width, (float)tile.height}, tileSize), WHITE);
          }
       }
    }

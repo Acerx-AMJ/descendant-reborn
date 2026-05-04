@@ -7,11 +7,11 @@ height=1
 type=solid
 [END]
 
-texture=dice
+texture=visible
 [END]
 
 type=coin
-texture=visible
+texture=dice
 [END]
 
 type=finish
@@ -22,7 +22,7 @@ texture=shadows_disabled
 width=3
 [END]
 
-texture=shadows_enabled
-width=2
-height=2
+texture=dice
+width=4
+height=4
 [END]

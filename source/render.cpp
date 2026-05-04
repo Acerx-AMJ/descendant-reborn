@@ -5,6 +5,13 @@
 
 // math module
 
+Vector2 Vector2DivideValue(Vector2 vector, float value) {
+   if (value == 0.0f) {
+      return {0.0f, 0.0f};
+   }
+   return {vector.x / value, vector.y / value};
+}
+
 float getWidthRatio() {
    return GetScreenWidth() / 1920.0f;
 }
