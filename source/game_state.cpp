@@ -29,7 +29,9 @@ GameState::GameState() {
 }
 
 GameState::~GameState() {
-
+   if (pausedTexture.id != 0) {
+      UnloadRenderTexture(pausedTexture);
+   }
 }
 
 void GameState::setup(const Level &level) {

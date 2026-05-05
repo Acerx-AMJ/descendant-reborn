@@ -2,17 +2,18 @@
 #include "asset.hpp"
 #include "customize_state.hpp"
 #include "game_state.hpp"
+#include <math.h>
 
 MenuState::MenuState() {
-   Texture buttonTexture = getTexture("button");
    Font font = getFont("slackey");
 
-   playButton = Button::make(buttonTexture, {300.0f, 100.0f}, font, "PLAY", 50.0f),
-   editorButton = Button::make(buttonTexture, {300.0f, 100.0f}, font, "EDITOR", 50.0f),
-   customizeButton = Button::make(buttonTexture, {300.0f, 100.0f}, font, "CUSTOMIZE", 50.0f),
-   quitButton = Button::make(buttonTexture, {300.0f, 100.0f}, font, "QUIT", 50.0f);
+   playButton = Text::make(font, "PLAY", 50.0f),
+   editorButton = Text::make(font, "EDITOR", 50.0f),
+   customizeButton = Text::make(font, "CUSTOMIZE", 50.0f),
+   optionsButton = Text::make(font, "OPTIONS", 50.0f);
+   quitButton = Text::make(font, "QUIT", 50.0f);
 
-   titleButtons.addElements({playButton, editorButton, customizeButton, quitButton});
+   titleButtons.addElements({playButton, editorButton, customizeButton, optionsButton, quitButton});
    updateResponsiveness();
 }
 
@@ -33,6 +34,10 @@ void MenuState::update() {
       fadingOut = true;
    }
 
+   if (optionsButton->clicked) {
+
+   }
+
    if (quitButton->clicked) {
       fadingOut = true;
    }
@@ -40,14 +45,14 @@ void MenuState::update() {
 
 void MenuState::render() {
    Font font = getFont("slackey");
-   drawTextCentered(font, getScreenCenterOffset({0.0f, -250.0f * getHeightRatio()}), "DESCENDANT REBORN", 120.0f, WHITE);
-
+   float cr = getCubicRatio();
+   
+   DrawRectangleV({0.0f, 0.0f}, {500.0f * cr, GetScreenHeight() * 1.0f}, Fade(BLACK, 0.5f));
+   drawTextSemiCentered(font, {cr * 25.0f, cr * 100.0f}, "DESCENDANT\n   REBORN", 80.0f, WHITE);
    titleButtons.render();
 
    if (titleButtons.anySelected()) {
-      Button *button = titleButtons.getSelectedButton();
-      float scale = getCubicRatio() * button->scale;
-      drawTextureCentered(getTexture("button_pointer"), button->position, {318.75f * scale, 106.25f * scale}, WHITE);
+      drawTextureCentered(getTexture("lotus"), {cr * 50.0f, titleButtons.getSelectedElement()->position.y}, cubicSize(65.0f + 10.0f * sin(GetTime() * 3.0f)), WHITE, GetTime() * 40.0f);
    }
 }
 
@@ -58,10 +63,11 @@ void MenuState::fixedUpdate() {
 void MenuState::updateResponsiveness() {
    float cr = getCubicRatio();
 
-   playButton->position = getScreenCenterOffset({0.0f, -100.0f * cr});
-   editorButton->position = getScreenCenterOffset({0.0f, 20.0f * cr});
-   customizeButton->position = getScreenCenterOffset({0.0f, 140.0f * cr});
-   quitButton->position = getScreenCenterOffset({0.0f, 260.0f * cr});
+   playButton->position = {cr * 100.0f, cr * 300.0f};
+   editorButton->position = {cr * 100.0f, cr * 400.0f};
+   customizeButton->position = {cr * 100.0f, cr * 500.0f};
+   optionsButton->position = {cr * 100.0f, cr * 600.0f};
+   quitButton->position = {cr * 100.0f, cr * 700.0f};
 }
 
 State *MenuState::change() {
