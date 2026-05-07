@@ -180,7 +180,7 @@ void CustomizeState::update() {
    if (tab != Tab::none) {
       Navigation &navig = (tab == Tab::skin ? skinButtons : colorButtons);
 
-      if (prevPageButton->clicked && navig.index >= extraButtons) {
+      if ((prevPageButton->clicked || handleKeyPressWithSound(KEY_COMMA)) && navig.index >= extraButtons) {
          if (navig.index - extraButtons < entriesPerPage) {
             navig.index = extraButtons;
          }
@@ -189,7 +189,7 @@ void CustomizeState::update() {
          }
       }
 
-      if (nextPageButton->clicked && navig.index >= extraButtons) {
+      if ((nextPageButton->clicked || handleKeyPressWithSound(KEY_PERIOD)) && navig.index >= extraButtons) {
          navig.index = std::min(navig.elements.size() - 1, navig.index + entriesPerPage);
       }
    }

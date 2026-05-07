@@ -16,11 +16,9 @@ GameState::GameState() {
    menuText = Text::make(font, "MAIN MENU", 50.0f);
    pauseNavig.addElements({continueText, restartText, menuText});
 
-   Shader shader = getShader("pixelizer");
+   Shader shader = getShader("blur");
    viewPortSizeShaderLocation = GetShaderLocation(shader, "viewport");
-   pixelSizeShaderLocation = GetShaderLocation(shader, "pixelSize");
    fadeShaderLocation = GetShaderLocation(shader, "fade");
-   timeShaderLocation = GetShaderLocation(shader, "time");
 
    pausedTexture.id = 0;
    updateResponsiveness();
@@ -65,7 +63,7 @@ void GameState::update() {
    }
 
    if (state == State::paused) {
-      pixelScale = fmin(1.0f, pixelScale + GetFrameTime());
+      pausedTimer = fmin(1.0f, pausedTimer + GetFrameTime() * 2.0f);
       pauseNavig.update();
 
       if (continueText->clicked) {
@@ -84,22 +82,24 @@ void GameState::update() {
       return;
    }
 
-   pixelScale = fmax(0.0f, pixelScale - GetFrameTime());
+   pausedTimer = fmax(0.0f, pausedTimer - GetFrameTime() * 2.0f);
    camera.updateControls();
+}
+
+float fadeBlur(float t) {
+    t = fmax(0.0f, fmin(1.0f, t));
+    return t * t * (3.0f - 2.0f * t);
 }
 
 void GameState::render() {
    // game world
-   if (pixelScale != 0.0f) {
-      Shader shader = getShader("pixelizer");
+   if (pausedTimer != 0.0f) {
+      Shader shader = getShader("blur");
       Vector2 size = getScreenSize();
-      Vector2 pixelSize = Vector2{10.0f, 10.0f} * pixelScale;
-      float time = GetTime();
+      float fade = fadeBlur(pausedTimer);
 
       SetShaderValue(shader, viewPortSizeShaderLocation, &size, SHADER_UNIFORM_VEC2);
-      SetShaderValue(shader, pixelSizeShaderLocation, &pixelSize, SHADER_UNIFORM_VEC2);
-      SetShaderValue(shader, fadeShaderLocation, &pixelScale, SHADER_UNIFORM_FLOAT);
-      SetShaderValue(shader, timeShaderLocation, &time, SHADER_UNIFORM_FLOAT);
+      SetShaderValue(shader, fadeShaderLocation, &fade, SHADER_UNIFORM_FLOAT);
 
       BeginTextureMode(pausedTexture);
       ClearBackground(BLACK);

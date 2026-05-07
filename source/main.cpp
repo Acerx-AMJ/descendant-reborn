@@ -9,7 +9,7 @@ constexpr int minWindowHeight = 600;
 int main() {
    srand(time(nullptr));
    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_MAXIMIZED);
-   InitWindow(minWindowWidth, minWindowHeight, "Descendant Reborn");
+   InitWindow(minWindowWidth, minWindowHeight, "Abyss Ascendant 3");
    SetWindowMinSize(minWindowWidth, minWindowHeight);
    InitAudioDevice();
    SetExitKey(KEY_NULL);

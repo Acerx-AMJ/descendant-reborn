@@ -32,9 +32,7 @@ private:
    Navigation pauseNavig;
 
    RenderTexture pausedTexture;
-   float pixelScale = 0.0f;
+   float pausedTimer = 0.0f;
    int viewPortSizeShaderLocation = 0;
-   int pixelSizeShaderLocation = 0;
    int fadeShaderLocation = 0;
-   int timeShaderLocation = 0;
 };
