@@ -1,7 +1,7 @@
 # Empty lines and lines starting with "#" are ignored.
 
 [DEFAULT]
-coinTile=dice
+coinTile=atramentum
 [END]
 
 name=My Level

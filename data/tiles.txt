@@ -11,7 +11,7 @@ texture=visible
 [END]
 
 type=coin
-texture=dice
+texture=atramentum
 [END]
 
 type=finish

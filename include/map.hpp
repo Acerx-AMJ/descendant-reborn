@@ -27,9 +27,9 @@ struct Map {
 
    std::string name;
    std::string chapter;
+   std::string coinTile;
    size_t coinCount = 0;
    size_t collectedCoins = 0;
-   size_t coinTile = 0;
    size_t sizeX = 0;
    size_t sizeY = 0;
    std::vector<std::vector<Tile>> tiles;

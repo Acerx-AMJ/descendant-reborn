@@ -112,12 +112,7 @@ void loadLevels() {
          level.chapter = value;
       }
       else if (field == "coinTile") {
-         if (!tileNameMap.count(value)) {
-            printf("WARNING: Malformed line: '%s'. No such tile '%s'\n", line.c_str(), value.c_str());
-         }
-         else {
-            level.coinTile = tileNameMap[value];
-         }
+         level.coinTile = value;
       }
       else if (field == "width") {
          getFieldAsSimpleValue(stream, value, line, level.sizeX);

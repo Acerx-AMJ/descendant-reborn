@@ -8,7 +8,7 @@
 struct Level {
    std::string name;
    std::string chapter;
-   size_t coinTile = 0;
+   std::string coinTile;
    size_t sizeX = 0;
    size_t sizeY = 0;
    std::vector<std::vector<size_t>> floor;

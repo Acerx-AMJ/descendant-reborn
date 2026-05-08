@@ -139,7 +139,7 @@ void GameState::render() {
 
    float down = GetScreenHeight() - 50.0f * cr;
 
-   drawTextureCentered(getTexture("lotus"), {cr * 720.0f, down}, cubicSize(50.0f), WHITE);
+   drawTextureCentered(getTexture(map.coinTile), {cr * 720.0f, down}, cubicSize(50.0f), WHITE);
    drawTextSemiCentered(font, {cr * 760.0f, down}, TextFormat("%lu/%lu", map.collectedCoins, map.coinCount), 35.0f, WHITE);
 
    drawTextureCentered(getTexture("lotus"), {cr * 1300.0f, down}, cubicSize(50.0f), WHITE);
