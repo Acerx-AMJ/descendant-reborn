@@ -134,8 +134,16 @@ void GameState::render() {
    }
    else {
       pauseButton.render();
-      restartButton.render();      
+      restartButton.render();
    }
+
+   float down = GetScreenHeight() - 50.0f * cr;
+
+   drawTextureCentered(getTexture("lotus"), {cr * 720.0f, down}, cubicSize(50.0f), WHITE);
+   drawTextSemiCentered(font, {cr * 760.0f, down}, TextFormat("%lu/%lu", map.collectedCoins, map.coinCount), 35.0f, WHITE);
+
+   drawTextureCentered(getTexture("lotus"), {cr * 1300.0f, down}, cubicSize(50.0f), WHITE);
+   drawTextSemiCentered(font, {cr * 1340.0f, down}, TextFormat("temp text."), 35.0f, WHITE);
 }
 
 void GameState::fixedUpdate() {

@@ -98,7 +98,7 @@ void Player::update(Map &map) {
             }
 
             if (tile.type == Tile::Type::coin) {
-               map.removeTile(x, y);
+               map.collectCoin(x, y);
                map.collectedCoins += 1;
             }
 
@@ -145,7 +145,7 @@ void Player::update(Map &map) {
             }
 
             if (tile.type == Tile::Type::coin) {
-               map.removeTile(x, y);
+               map.collectCoin(x, y);
                map.collectedCoins += 1;
             }
 

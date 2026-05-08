@@ -1,11 +1,8 @@
 #include "state.hpp"
 #include "input.hpp"
+#include "particles.hpp"
 #include <cmath>
 #include <raylib.h>
-
-constexpr float maxDeltaTime = 0.25f;
-constexpr float fixedUpdateDeltaTime = 1.0f / 60.0f;
-constexpr float fadeTime = 0.4f;
 
 void State::updateStateLogic() {
    int width = GetScreenWidth();
@@ -27,6 +24,7 @@ void State::updateStateLogic() {
    else {
       accumulator += fminf(maxDeltaTime, GetFrameTime());
       while (accumulator >= fixedUpdateDeltaTime) {
+         updateParticles();
          fixedUpdate();
          accumulator -= fixedUpdateDeltaTime;
       }

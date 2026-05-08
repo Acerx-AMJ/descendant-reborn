@@ -1,8 +1,10 @@
 #include "map.hpp"
 #include "camera.hpp"
 #include "math.hpp"
+#include "particles.hpp"
 #include "player.hpp"
 #include "render.hpp"
+#include "sound.hpp"
 #include <raymath.h>
 
 void Map::init(const Level &level, CameraDR3 &camera, Player &player) {
@@ -167,6 +169,7 @@ void Map::render(Player &player, const Rectangle &bounds) {
       }
    }
 
+   renderParticles();
    player.render();
 }
 
@@ -194,5 +197,13 @@ void Map::removeTile(size_t x, size_t y) {
          }
          tile = {};
       }
+   }
+}
+
+void Map::collectCoin(size_t x, size_t y) {
+   if (tiles[y][x].type == Tile::Type::coin) {
+      spawnCoinParticles(V2(x + 0.5f, y + 0.5f) * tileSize, tiles[y][x].texture);
+      playSound("coin");
+      removeTile(x, y);
    }
 }

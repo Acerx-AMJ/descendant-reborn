@@ -23,6 +23,7 @@ struct Map {
 
    // remove a tile including its ghost tiles. position supplied does not have to be the root position
    void removeTile(size_t x, size_t y);
+   void collectCoin(size_t x, size_t y);
 
    std::string name;
    std::string chapter;

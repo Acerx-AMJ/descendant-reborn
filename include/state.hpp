@@ -1,5 +1,9 @@
 #pragma once
 
+constexpr float maxDeltaTime = 0.25f;
+constexpr float fixedUpdateDeltaTime = 1.0f / 60.0f;
+constexpr float fadeTime = 0.4f;
+
 struct State {
    State() = default;
    virtual ~State() = default;
