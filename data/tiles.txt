@@ -1,9 +1,13 @@
 # Empty lines and lines starting with "#" are ignored.
+# [DEFAULT] - Start a block to define the default fields
+# field=value
+# [END] - Push the tile and set the next one to default
 
 [DEFAULT]
-width=1
-height=1
-type=solid
+#texture=my_tile  # Texture. "assets/sprites/my_tile.png" -> "my_tile"
+width=1           # Width of the tile in tiles
+height=1          # Height of the tile in tiles
+type=solid        # Type of the tile - solid, coin, finish
 [END]
 
 texture=visible

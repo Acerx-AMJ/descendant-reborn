@@ -37,7 +37,7 @@ void GameState::setup(const Level &level) {
    calculateCameraBounds();
 
    initAnimationIfExists(coinAnimation, level.coinTile);
-   initAnimationIfExists(timerAnimation, "timer"); // TODO: add to config
+   initAnimationIfExists(timerAnimation, level.timerTile);
 }
 
 void GameState::calculateCameraBounds() {

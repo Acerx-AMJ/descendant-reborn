@@ -117,6 +117,9 @@ void loadLevels() {
       else if (field == "coinTile") {
          level.coinTile = value;
       }
+      else if (field == "timerTile") {
+         level.timerTile = value;
+      }
       else if (field == "width") {
          getFieldAsSimpleValue(stream, value, line, level.sizeX);
       }
@@ -125,6 +128,7 @@ void loadLevels() {
       }
       else if (field == "floor" || field == "map") {
          std::vector<std::vector<size_t>> &container = (field == "map" ? level.map : level.floor);
+         container.clear();
          container.reserve(level.sizeY);
          stream.clear();
          stream.str(value);

@@ -1,7 +1,10 @@
 # Empty lines and lines starting with "#" are ignored.
+# [DEFAULT] - Start a block to define the default fields
+# field=value
+# [END] - Push the animation and set the next one to default
 
 [DEFAULT]
-#texture=your_texture   # Texture. assets/sprites.your_texture.png -> your_texture
+#texture=your_texture   # Texture. "assets/sprites.your_texture.png" -> "your_texture"
 width=64                # Frame/variation width in pixels.
 height=64               # Frame/variation height in pixels.
 gap=1                   # Gap in pixels between frames and variations.

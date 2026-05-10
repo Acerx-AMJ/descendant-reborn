@@ -1,7 +1,18 @@
+# WARNING: This file shouldn't be manually edited, that's what the editor is for.
 # Empty lines and lines starting with "#" are ignored.
+# [DEFAULT] - Start a block to define the default fields
+# field=value
+# [END] - Push the level and set the next one to default
 
 [DEFAULT]
-coinTile=atramentum
+#name=My Level       # Name of the level.
+#chapter=My Chapter  # Chapter. Chapters are found in "data/chapters.txt"
+coinTile=atramentum  # Tile used to display coin count. "assets/sprites/my_coin.png" -> "my_coin"
+timerTile=timer      # Tile used to display timer. "assets/sprites/my_timer.png" -> "my_timer"
+width=1              # Width of the level in tiles.
+height=1             # Height of the level in tiles.
+floor=0              # Floor tile IDs. Offset by 2 as 0 - empty and 1 - spawn point.
+map=1                # Map tile IDs. Offset by 2 as 0 - empty and 1 - spawn point.
 [END]
 
 name=My Level

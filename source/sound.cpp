@@ -6,22 +6,15 @@
 constexpr float soundPitchMin = 0.95f;
 constexpr float soundPitchMax = 1.05f;
 
-static std::unordered_map<std::string, std::vector<std::string>> savedSounds;
-static std::unordered_map<std::string, Sound> sounds;
+static std::unordered_map<std::string, std::vector<Sound>> sounds;
 
 void playSound(const std::string &name, float volume) {
-   if (!savedSounds.count(name) && !sounds.count(name)) {
+   if (!sounds.count(name)) {
       printf("Sound '%s' does not exist.\n", name.c_str());
       return;
    }
-   Sound sound;
 
-   if (savedSounds.count(name)) {
-      std::string &randomName = randomVectorAccess(savedSounds[name]);
-      sound = sounds[randomName];
-   } else {
-      sound = sounds[name];
-   }
+   Sound sound = randomVectorAccess(sounds[name]);
    SetSoundPitch(sound, randomFloat(soundPitchMin, soundPitchMax));
    SetSoundVolume(sound, volume);
    PlaySound(sound);
@@ -29,7 +22,7 @@ void playSound(const std::string &name, float volume) {
 
 void loadSound(const std::string &name, const std::string &path) {
    Sound newSound = LoadSound(path.c_str());
-   sounds[name] = newSound;
+   sounds[name].push_back(newSound);
 }
 
 void loadSounds() {
@@ -40,11 +33,9 @@ void loadSounds() {
       }
 
       std::string stem = file.path().stem().string();
-      loadSound(stem, file.path().string());
-
       if (isdigit(stem.back())) {
-         std::string cleanStem = stem.substr(0, stem.size() - 1);
-         savedSounds[cleanStem].push_back(stem);
+         stem = stem.substr(0, stem.find_last_not_of("1234567890") + 1);
       }
+      loadSound(stem, file.path().string());
    }
 }
