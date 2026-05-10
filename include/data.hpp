@@ -1,6 +1,7 @@
 #pragma once
 #include <raylib.h>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 // game data module
@@ -15,6 +16,23 @@ struct Level {
    std::vector<std::vector<size_t>> map;
 };
 
+struct TextureAA3 {
+   std::string name;
+   size_t variation = 0;
+   size_t frame = 0;
+   float timer = 0.0f;
+};
+
+struct Animation {
+   size_t width = 0;
+   size_t height = 0;
+   size_t gap = 0;
+   size_t frames = 0;
+   size_t variations = 1;
+   float animationSpeed = 0.0f;
+   bool randomAnimationStart = false;
+};
+
 struct Tile {
    enum class TileType: char {root, ghost, none};
    enum class Type: char {solid, coin, finish};
@@ -22,10 +40,9 @@ struct Tile {
    TileType tileType = TileType::none;
    Type type = Type::solid;
    size_t ID = 0;
-   size_t tsize = 0;
    size_t width = 0;
    size_t height = 0;
-   Texture2D *texture = nullptr;
+   TextureAA3 texture;
    Vector2 rootPosition;
 };
 
@@ -35,6 +52,7 @@ void loadPlayerColors();
 void loadChapters();
 void loadLevels();
 void loadTiles();
+void loadAnimations();
 
 size_t getPlayerIconCount();
 std::string &getPlayerIcon(size_t ID);
@@ -55,6 +73,12 @@ std::vector<Level> &getLevelContainer();
 size_t getTileCount();
 Tile &getTile(size_t ID);
 std::vector<Tile> &getTileContainer();
+
+size_t getAnimationCount();
+void initAnimationIfExists(TextureAA3 &texture, const std::string &name);
+bool hasAnimation(const std::string &name);
+Animation &getAnimation(const std::string &name);
+std::unordered_map<std::string, Animation> &getAnimationContainer();
 
 // player data module
 

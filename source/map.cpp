@@ -1,4 +1,5 @@
 #include "map.hpp"
+#include "asset.hpp"
 #include "camera.hpp"
 #include "math.hpp"
 #include "particles.hpp"
@@ -7,7 +8,7 @@
 #include "sound.hpp"
 #include <raymath.h>
 
-void Map::init(const Level &level, CameraDR3 &camera, Player &player) {
+void Map::init(const Level &level, CameraAA3 &camera, Player &player) {
    Rectangle bounds = {0, 0, level.sizeX * tileSize, level.sizeY * tileSize};
    std::vector<Vector2> spawnPositions;
 
@@ -49,6 +50,7 @@ void Map::init(const Level &level, CameraDR3 &camera, Player &player) {
          tiles[y][x] = tile;
          tiles[y][x].tileType = Tile::TileType::root;
          coinCount += (tile.type == Tile::Type::coin);
+         initAnimationIfExists(tiles[y][x].texture, tiles[y][x].texture.name);
 
          for (size_t yy = 0; yy < tile.height; ++yy) {
             for (size_t xx = 0; xx < tile.width; ++xx) {
@@ -93,6 +95,7 @@ void Map::init(const Level &level, CameraDR3 &camera, Player &player) {
 
          floor[y][x] = tile;
          floor[y][x].tileType = Tile::TileType::root;
+         initAnimationIfExists(floor[y][x].texture, floor[y][x].texture.name);
 
          for (size_t yy = 0; yy < tile.height; ++yy) {
             for (size_t xx = 0; xx < tile.width; ++xx) {
@@ -135,7 +138,7 @@ void Map::render(Player &player, const Rectangle &bounds) {
          Tile &tile = floor[y][x];
 
          if (tile.tileType == Tile::TileType::root) {
-            drawTexture(*tile.texture, V2(x, y) * tileSize, V2(tile.width, tile.height) * tileSize, floorColor);
+            drawTextureAnimated(tile.texture, V2(x, y) * tileSize, V2(tile.width, tile.height) * tileSize, floorColor);
          }
          else if (tile.tileType == Tile::TileType::ghost && (tile.rootPosition.x < bounds.x || tile.rootPosition.y < bounds.y)) {
             Vector2 pos = tile.rootPosition;
@@ -145,7 +148,7 @@ void Map::render(Player &player, const Rectangle &bounds) {
 
             drawnRootTiles.insert(pos);
             Tile &tile = floor[pos.y][pos.x];
-            drawTexture(*tile.texture, pos * tileSize, V2(tile.width, tile.height) * tileSize, floorColor);
+            drawTextureAnimated(tile.texture, pos * tileSize, V2(tile.width, tile.height) * tileSize, floorColor);
          }
       }
    }
@@ -157,7 +160,7 @@ void Map::render(Player &player, const Rectangle &bounds) {
 
          if (tile.tileType == Tile::TileType::root) {
             Vector2 position = V2(x, y + (tile.type == Tile::Type::coin) * coinOffset) * tileSize;
-            drawTexture(*tile.texture, position, V2(tile.width, tile.height) * tileSize, WHITE);
+            drawTextureAnimated(tile.texture, position, V2(tile.width, tile.height) * tileSize, WHITE);
          }
          else if (tile.tileType == Tile::TileType::ghost && (tile.rootPosition.x < bounds.x || tile.rootPosition.y < bounds.y)) {
             Vector2 pos = tile.rootPosition;
@@ -169,7 +172,7 @@ void Map::render(Player &player, const Rectangle &bounds) {
             Tile &tile = tiles[pos.y][pos.x];
 
             pos.y += (tile.type == Tile::Type::coin) * coinOffset;
-            drawTexture(*tile.texture, pos * tileSize, V2(tile.width, tile.height) * tileSize, WHITE);
+            drawTextureAnimated(tile.texture, pos * tileSize, V2(tile.width, tile.height) * tileSize, WHITE);
          }
       }
    }
@@ -207,7 +210,7 @@ void Map::removeTile(size_t x, size_t y) {
 
 void Map::collectCoin(size_t x, size_t y) {
    if (tiles[y][x].type == Tile::Type::coin) {
-      spawnCoinParticles(V2(x + 0.5f, y + 0.5f) * tileSize, tiles[y][x].texture);
+      spawnCoinParticles(V2(x + 0.5f, y + 0.5f) * tileSize, &getTexture(tiles[y][x].texture.name));
       playSound("coin");
       removeTile(x, y);
    }

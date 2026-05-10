@@ -1,6 +1,6 @@
 #include "data.hpp"
-#include "asset.hpp"
 #include "file.hpp"
+#include "math.hpp"
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
@@ -10,6 +10,7 @@ static std::vector<Vector3> playerColorContainer;
 static std::vector<std::string> chapterContainer;
 static std::vector<Level> levelContainer;
 static std::vector<Tile> tileContainer;
+static std::unordered_map<std::string, Animation> animationContainer;
 
 static std::unordered_map<std::string, size_t> tileNameMap;
 
@@ -26,6 +27,8 @@ void loadData() {
    loadTiles();
    printf("Loading levels from 'data/levels.txt'...\n");
    loadLevels();
+   printf("Loading animations from 'data/animations.txt'...\n");
+   loadAnimations();
    printf("Loading successful!\n");
 }
 
@@ -61,7 +64,7 @@ template<typename T>
 void getFieldAsSimpleValue(std::stringstream &stream, const std::string &value, const std::string &line, T &target) {
    stream.clear();
    stream.str(value);
-   stream >> target;
+   stream >> std::boolalpha >> target;
 
    if (stream.rdbuf()->in_avail() != 0) {
       printf("WARNING: Malformed line '%s'. Expected number.\n", line.c_str());
@@ -186,10 +189,7 @@ void loadTiles() {
       field.erase(field.find_last_not_of(" \n\r\t\v\f") + 1);
       value.erase(0, value.find_first_not_of(" \n\r\t\v\f"));
 
-      if (field == "tsize") {
-         getFieldAsSimpleValue(stream, value, line, tile.tsize);
-      }
-      else if (field == "width") {
+      if (field == "width") {
          getFieldAsSimpleValue(stream, value, line, tile.width);
       }
       else if (field == "height") {
@@ -210,8 +210,77 @@ void loadTiles() {
          }
       }
       else if (field == "texture") {
-         tile.texture = &getTexture(value);
+         tile.texture.name = value;
          tileNameMap[value] = tileContainer.size();
+      }
+      else {
+         printf("WARNING: Malformed line: '%s'. Unexpected field '%s'.\n", line.c_str(), field.c_str());
+      }
+   }
+}
+
+void loadAnimations() {
+   std::vector<std::string> lines = getLinesFromFileIgnoringCommentsAndEmptyLines("data/animations.txt");
+   std::stringstream stream;
+   tileContainer.reserve(lines.size() / 8); // rough estimate
+
+   std::string name;
+   Animation stack, defaultAnim;
+   bool defaulting = false;
+
+   for (const std::string &line: lines) {
+      if (line == "[DEFAULT]") {
+         defaulting = true;
+         continue;
+      }
+      
+      if (line == "[END]") {
+         if (defaulting) {
+            defaulting = false;
+            stack = defaultAnim;
+         }
+         else {
+            animationContainer[name] = stack;
+            stack = defaultAnim;
+         }
+         continue;
+      }
+
+      size_t equals = line.find('=');
+      if (equals == std::string::npos) {
+         printf("WARNING: Malformed line: '%s'. Expected '=' character.\n", line.c_str());
+         continue;
+      }
+
+      Animation &anim = defaulting ? defaultAnim : stack;
+      std::string field = line.substr(0, equals);
+      std::string value = line.substr(equals + 1);
+      field.erase(field.find_last_not_of(" \n\r\t\v\f") + 1);
+      value.erase(0, value.find_first_not_of(" \n\r\t\v\f"));
+
+      if (field == "width") {
+         getFieldAsSimpleValue(stream, value, line, anim.width);
+      }
+      else if (field == "height") {
+         getFieldAsSimpleValue(stream, value, line, anim.height);
+      }
+      else if (field == "gap") {
+         getFieldAsSimpleValue(stream, value, line, anim.gap);
+      }
+      else if (field == "frames") {
+         getFieldAsSimpleValue(stream, value, line, anim.frames);
+      }
+      else if (field == "variations") {
+         getFieldAsSimpleValue(stream, value, line, anim.variations);
+      }
+      else if (field == "speed") {
+         getFieldAsSimpleValue(stream, value, line, anim.animationSpeed);
+      }
+      else if (field == "randomStartOffset") {
+         getFieldAsSimpleValue(stream, value, line, anim.randomAnimationStart);
+      }
+      else if (field == "texture") {
+         name = value;
       }
       else {
          printf("WARNING: Malformed line: '%s'. Unexpected field '%s'.\n", line.c_str(), field.c_str());
@@ -297,6 +366,36 @@ Tile &getTile(size_t ID) {
 
 std::vector<Tile> &getTileContainer() {
    return tileContainer;
+}
+
+size_t getAnimationCount() {
+   return animationContainer.size();
+}
+
+void initAnimationIfExists(TextureAA3 &texture, const std::string &name) {
+   texture.name = name;
+   if (hasAnimation(name)) {
+      Animation &anim = getAnimation(name);
+      texture.frame = 0;
+      texture.timer = (anim.randomAnimationStart ? randomFloat(0.0f, anim.animationSpeed) : 0.0f);
+      texture.variation = rand() % anim.variations;
+   }
+}
+
+bool hasAnimation(const std::string &name) {
+   return animationContainer.count(name);
+}
+
+Animation &getAnimation(const std::string &name) {
+   if (!hasAnimation(name)) {
+      printf("ERROR: Animation '%s' does not exist.\n", name.c_str());
+      exit(EXIT_FAILURE);
+   }
+   return animationContainer[name];
+}
+
+std::unordered_map<std::string, Animation> &getAnimationContainer() {
+   return animationContainer;
 }
 
 // player data module

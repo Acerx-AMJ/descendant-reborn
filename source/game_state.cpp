@@ -35,6 +35,9 @@ GameState::~GameState() {
 void GameState::setup(const Level &level) {
    map.init(level, camera, player);
    calculateCameraBounds();
+
+   initAnimationIfExists(coinAnimation, level.coinTile);
+   initAnimationIfExists(timerAnimation, "timer"); // TODO: add to config
 }
 
 void GameState::calculateCameraBounds() {
@@ -139,10 +142,10 @@ void GameState::render() {
 
    float down = GetScreenHeight() - 50.0f * cr;
 
-   drawTextureCentered(getTexture(map.coinTile), {cr * 720.0f, down}, cubicSize(50.0f), WHITE);
+   drawTextureAnimatedCentered(coinAnimation, {cr * 720.0f, down}, cubicSize(50.0f), WHITE);
    drawTextSemiCentered(font, {cr * 760.0f, down}, TextFormat("%lu/%lu", map.collectedCoins, map.coinCount), 35.0f, WHITE);
 
-   drawTextureCentered(getTexture("lotus"), {cr * 1300.0f, down}, cubicSize(50.0f), WHITE);
+   drawTextureAnimatedCentered(timerAnimation, {cr * 1300.0f, down}, cubicSize(50.0f), WHITE);
    drawTextSemiCentered(font, {cr * 1340.0f, down}, TextFormat("temp text."), 35.0f, WHITE);
 }
 

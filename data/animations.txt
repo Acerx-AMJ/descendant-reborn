@@ -1,0 +1,18 @@
+# Empty lines and lines starting with "#" are ignored.
+
+[DEFAULT]
+#texture=your_texture   # Texture. assets/sprites.your_texture.png -> your_texture
+width=64                # Frame/variation width in pixels.
+height=64               # Frame/variation height in pixels.
+gap=1                   # Gap in pixels between frames and variations.
+frames=1                # Number of frames in the animation
+variations=1            # Variations of the sprite. Must be placed on top of each other
+speed=1.0               # Time between frames
+randomStartOffset=true  # Should animations have different start times
+[END]
+
+texture=timer
+frames=8
+speed=0.125
+randomStartOffset=false
+[END]

@@ -1,7 +1,6 @@
 # Empty lines and lines starting with "#" are ignored.
 
 [DEFAULT]
-tsize=64
 width=1
 height=1
 type=solid
@@ -15,7 +14,7 @@ texture=atramentum
 [END]
 
 type=finish
-texture=hidden
+texture=timer
 [END]
 
 texture=shadows_disabled

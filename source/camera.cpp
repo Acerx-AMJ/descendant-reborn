@@ -8,7 +8,7 @@ constexpr float shakeFrequency = 1.0f / 20.0f;
 constexpr float lerpSpeed = 0.15f;
 constexpr float zoomSpeed = 0.15f;
 
-void CameraDR3::init(Player *lock, Rectangle bounds, Vector2 center, float zoom, float zoomMin, float zoomMax) {
+void CameraAA3::init(Player *lock, Rectangle bounds, Vector2 center, float zoom, float zoomMin, float zoomMax) {
    camera.target = center;
    camera.offset = getScreenCenter();
    camera.rotation = 0.0f;
@@ -20,12 +20,12 @@ void CameraDR3::init(Player *lock, Rectangle bounds, Vector2 center, float zoom,
    this->zoomMax = zoomMax;
 }
 
-void CameraDR3::shake(float strenght, float length) {
+void CameraAA3::shake(float strenght, float length) {
    shakeStrength = strenght;
    shakeTimer = length;
 }
 
-void CameraDR3::update() {
+void CameraAA3::update() {
    Vector2 position = target;
 
    if (lock) {
@@ -78,7 +78,7 @@ void CameraDR3::update() {
    }
 }
 
-void CameraDR3::updateControls() {
+void CameraAA3::updateControls() {
    float scrollDelta = GetMouseWheelMove();
    if (scrollDelta >= 0.5f) {
       targetZoom *= 1.0f - GetFrameTime() * 6.0f;

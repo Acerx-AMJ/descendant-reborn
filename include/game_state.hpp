@@ -24,7 +24,7 @@ private:
    State state = State::playing;
    Player player;
    Rectangle cameraBounds;
-   CameraDR3 camera;
+   CameraAA3 camera;
    Map map;
 
    Button pauseButton, restartButton;
@@ -32,6 +32,8 @@ private:
    Navigation pauseNavig;
 
    RenderTexture pausedTexture;
+   TextureAA3 coinAnimation, timerAnimation;
+
    float pausedTimer = 0.0f;
    int viewPortSizeShaderLocation = 0;
    int fadeShaderLocation = 0;

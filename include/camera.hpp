@@ -2,7 +2,7 @@
 #include "player.hpp"
 #include <raylib.h>
 
-struct CameraDR3 {
+struct CameraAA3 {
    void init(Player *lock, Rectangle bounds, Vector2 center, float zoom, float zoomMin, float zoomMax);
    void shake(float strength, float length);
    void update();

@@ -32,6 +32,8 @@ void drawTextRatio(Font font, Vector2 ratio, const char *text, float fontSize, C
 void drawTextRatioCentered(Font font, Vector2 ratio, const char *text, float fontSize, Color color);
 void drawTexture(Texture texture, Vector2 position, Vector2 size, Color color, float rotation = 0.0f);
 void drawTextureCentered(Texture texture, Vector2 position, Vector2 size, Color color, float rotation = 0.0f);
+void drawTextureAnimated(struct TextureAA3 &anim, Vector2 position, Vector2 size, Color color);
+void drawTextureAnimatedCentered(struct TextureAA3 &anim, Vector2 position, Vector2 size, Color color);
 
 // ui module
 

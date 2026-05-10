@@ -3,7 +3,7 @@
 #include <unordered_set>
 
 struct Level;
-struct CameraDR3;
+struct CameraAA3;
 struct Player;
 
 struct Vector2Hash {
@@ -16,7 +16,7 @@ constexpr float tileSize = 50.0f;
 constexpr Color floorColor = {95, 95, 135, 255};
 
 struct Map {
-   void init(const Level &level, CameraDR3 &camera, Player &player);
+   void init(const Level &level, CameraAA3 &camera, Player &player);
    void render(Player &player, const Rectangle &bounds);
 
    // utillity

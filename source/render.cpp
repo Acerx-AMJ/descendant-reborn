@@ -1,5 +1,8 @@
+#include "asset.hpp"
+#include "data.hpp"
 #include "render.hpp"
 #include "input.hpp"
+#include "math.hpp"
 #include "sound.hpp"
 #include <raymath.h>
 
@@ -99,6 +102,52 @@ void drawTexture(Texture texture, Vector2 position, Vector2 size, Color color, f
 
 void drawTextureCentered(Texture texture, Vector2 position, Vector2 size, Color color, float rotation) {
    DrawTexturePro(texture, getSource(texture), getRectangle(position, size), getOrigin(size), rotation, color);
+}
+
+void drawTextureAnimated(TextureAA3 &anim, Vector2 position, Vector2 size, Color color) {
+   if (!hasAnimation(anim.name)) {
+      drawTexture(getTexture(anim.name), position, size, color);
+      return;
+   }
+
+   Animation &animation = getAnimation(anim.name);
+   anim.timer += GetFrameTime();
+   
+   if (anim.timer >= animation.animationSpeed) {
+      anim.timer -= animation.animationSpeed;
+      anim.frame = (anim.frame + 1) % animation.frames;
+   }
+
+   Rectangle source = R4(
+      (animation.width + animation.gap) * anim.frame,
+      (animation.height + animation.gap) * anim.variation,
+      animation.width,
+      animation.height
+   );
+   DrawTexturePro(getTexture(anim.name), source, getRectangle(position, size), {0.0f, 0.0f}, 0.0f, color);
+}
+
+void drawTextureAnimatedCentered(TextureAA3 &anim, Vector2 position, Vector2 size, Color color) {
+   if (!hasAnimation(anim.name)) {
+      drawTextureCentered(getTexture(anim.name), position, size, color);
+      return;
+   }
+
+   Animation &animation = getAnimation(anim.name);
+   anim.timer += GetFrameTime();
+   
+   if (anim.timer >= animation.animationSpeed) {
+      anim.timer -= animation.animationSpeed;
+      anim.frame = (anim.frame + 1) % animation.frames;
+   }
+
+   Rectangle source = R4(
+      (animation.width + animation.gap) * anim.frame,
+      (animation.height + animation.gap) * anim.variation,
+      animation.width,
+      animation.height
+   );
+   DrawTexturePro(getTexture(anim.name), source, getRectangle(position, size), getOrigin(size), 0.0f, color);
 }
 
 // ui module

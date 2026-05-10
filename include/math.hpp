@@ -3,14 +3,19 @@
 #include <raylib.h>
 #include <vector>
 
-template<typename T, typename U>
-constexpr inline Vector2 V2(T x, U y) {
+template<typename T, typename Y>
+constexpr inline Vector2 V2(T x, Y y) {
    return {(float)x, (float)y};
 }
 
 template<typename T>
 constexpr inline Vector2 V2(T value) {
    return {(float)value, (float)value};
+}
+
+template<typename T, typename Y, typename U, typename I>
+constexpr inline Rectangle R4(T x, Y y, U width, I height) {
+   return {(float)x, (float)y, (float)width, (float)height};
 }
 
 inline int randomInt(int min, int max) {

@@ -21,7 +21,7 @@ private:
    enum class Tab {none, skin, primary, secondary};
    Tab tab = Tab::none;
 
-   CameraDR3 camera;
+   CameraAA3 camera;
    Player player;
    Navigation skinButtons, colorButtons, hiddenButtons, noTabButtons;
    Button *backButton, *skinTab, *primaryTab, *secondaryTab, *hiddenButton, *visibleButton, *diceButton,
