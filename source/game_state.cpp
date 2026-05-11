@@ -16,6 +16,11 @@ GameState::GameState() {
    menuText = Text::make(font, "MAIN MENU", 50.0f);
    pauseNavig.addElements({continueText, restartText, menuText});
 
+   wonNextText = Text::make(font, "NEXT", 50.0f);
+   wonRestartText = Text::make(font, "RESTART", 50.0f);
+   wonMenuText = Text::make(font, "MAIN MENU", 50.0f);
+   wonNavig.addElements({wonNextText, wonRestartText, wonMenuText});
+
    Shader shader = getShader("blur");
    viewPortSizeShaderLocation = GetShaderLocation(shader, "viewport");
    fadeShaderLocation = GetShaderLocation(shader, "fade");
@@ -52,6 +57,27 @@ void GameState::calculateCameraBounds() {
 }
 
 void GameState::update() {
+   if (state == State::won) {
+      pausedTimer = fmin(1.0f, pausedTimer + GetFrameTime());
+      wonNavig.update();
+
+      if (wonNextText->clicked) {
+         shouldGoToNextLevel = true;
+         fadingOut = true;
+      }
+
+      if (wonRestartText->clicked || handleKeyPressWithSound(KEY_R)) {
+         shouldRestart = true;
+         fadingOut = true;
+      }
+
+      if (wonMenuText->clicked || handleKeyPressWithSound(KEY_ESCAPE)) {
+         shouldGoToMainMenu = true;
+         fadingOut = true;
+      }
+      return;
+   }
+
    pauseButton.update();
    restartButton.update();
 
@@ -61,7 +87,7 @@ void GameState::update() {
    }
 
    if (restartButton.clicked || handleKeyPressWithSound(KEY_R)) {
-      state = State::restarting;
+      shouldRestart = true;
       fadingOut = true;
    }
 
@@ -74,12 +100,12 @@ void GameState::update() {
       }
 
       if (restartText->clicked) {
-         state = State::restarting;
+         shouldRestart = true;
          fadingOut = true;
       }
 
       if (menuText->clicked) {
-         state = State::menu;
+         shouldGoToMainMenu = true;
          fadingOut = true;
       }
       return;
@@ -125,6 +151,19 @@ void GameState::render() {
    Font font = getFont("slackey");
    float cr = getCubicRatio();
 
+   if (state == State::won) {
+      DrawRectangleV({0.0f, 0.0f}, getScreenSize(), Fade(BLACK, pausedTimer / 2.0f));
+      DrawRectangleV({0.0f, 0.0f}, {500.0f * cr, GetScreenHeight() * 1.0f}, Fade(BLACK, 0.5f));
+      drawTextSemiCentered(font, {cr * 100.0f, cr * 100.0f}, "Level Beat!", 50.0f, WHITE);
+      drawTextSemiCentered(font, {cr * 100.0f, cr * 150.0f}, "Next: TODO: add", 35.0f, {200, 200, 200, 255});
+      wonNavig.render();
+
+      if (wonNavig.anySelected()) {
+         drawTextureCentered(getTexture("lotus"), {cr * 50.0f, wonNavig.getSelectedElement()->position.y}, cubicSize(65.0f + 10.0f * sin(GetTime() * 3.0f)), WHITE, GetTime() * 40.0f);
+      }
+      return;
+   }
+
    if (state == State::paused) {
       DrawRectangleV({0.0f, 0.0f}, {500.0f * cr, GetScreenHeight() * 1.0f}, Fade(BLACK, 0.5f));
       drawTextSemiCentered(font, {cr * 100.0f, cr * 100.0f}, map.name.c_str(), 50.0f, WHITE);
@@ -150,8 +189,14 @@ void GameState::render() {
 }
 
 void GameState::fixedUpdate() {
-   if (state != State::paused) {
+   if (state != State::paused && state != State::won) {
       player.update(map);
+
+      if (player.finished) {
+         pausedTimer = 0.0f;
+         state = State::won;
+         camera.shake(20.0f, 0.3f);
+      }
    }
    camera.update();
    calculateCameraBounds();
@@ -162,9 +207,9 @@ void GameState::updateResponsiveness() {
    pauseButton.position = {cr * 55.0f, GetScreenHeight() - cr * 55.0f};
    restartButton.position = {cr * 145.0f, GetScreenHeight() - cr * 55.0f};
 
-   continueText->position = {cr * 100.0f, cr * 300.0f};
-   restartText->position = {cr * 100.0f, cr * 400.0f};
-   menuText->position = {cr * 100.0f, cr * 500.0f};
+   continueText->position = wonNextText->position    = {cr * 100.0f, cr * 300.0f};
+   restartText->position  = wonRestartText->position = {cr * 100.0f, cr * 400.0f};
+   menuText->position     = wonMenuText->position    = {cr * 100.0f, cr * 500.0f};
 
    if (pausedTexture.id != 0) {
       UnloadRenderTexture(pausedTexture);
@@ -173,11 +218,11 @@ void GameState::updateResponsiveness() {
 }
 
 State *GameState::change() {
-   if (state == State::restarting) {
+   if (shouldRestart) {
       return new GameState();
    }
 
-   if (state == State::menu) {
+   if (shouldGoToMainMenu) {
       return new MenuState();
    }
    return nullptr;

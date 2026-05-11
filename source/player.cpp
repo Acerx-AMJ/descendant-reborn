@@ -103,7 +103,8 @@ void Player::update(Map &map) {
             }
 
             if (tile.type == Tile::Type::finish) {
-
+               finished = true;
+               return;
             }
 
             if (tile.type == Tile::Type::solid) {
@@ -150,7 +151,8 @@ void Player::update(Map &map) {
             }
 
             if (tile.type == Tile::Type::finish) {
-
+               finished = true;
+               return;
             }
 
             if (tile.type == Tile::Type::solid) {

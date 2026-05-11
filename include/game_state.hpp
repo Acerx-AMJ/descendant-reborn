@@ -19,7 +19,7 @@ struct GameState: public State {
 
 private:
 
-   enum class State {playing, paused, restarting, menu};
+   enum class State {playing, paused, won};
 
    State state = State::playing;
    Player player;
@@ -28,12 +28,15 @@ private:
    Map map;
 
    Button pauseButton, restartButton;
-   Text *continueText, *restartText, *menuText;
-   Navigation pauseNavig;
+   Text *continueText, *restartText, *menuText, *wonNextText, *wonRestartText, *wonMenuText;
+   Navigation pauseNavig, wonNavig;
 
    RenderTexture pausedTexture;
    TextureAA3 coinAnimation, timerAnimation;
 
+   bool shouldRestart = false;
+   bool shouldGoToMainMenu = false;
+   bool shouldGoToNextLevel = false;
    float pausedTimer = 0.0f;
    int viewPortSizeShaderLocation = 0;
    int fadeShaderLocation = 0;

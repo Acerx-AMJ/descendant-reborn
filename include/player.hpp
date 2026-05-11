@@ -35,6 +35,7 @@ struct Player {
    bool playerInitialized = false;
    bool shadowsEnabled = true;
    bool blockMovement = false;
+   bool finished = false;
 
    int primaryShaderLocation = 0;
    int secondaryShaderLocation = 0;
