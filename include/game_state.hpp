@@ -37,7 +37,16 @@ private:
    bool shouldRestart = false;
    bool shouldGoToMainMenu = false;
    bool shouldGoToNextLevel = false;
+   bool startCountingTime = false;
+   
    float pausedTimer = 0.0f;
+   float gameTime = 0.0f;
    int viewPortSizeShaderLocation = 0;
    int fadeShaderLocation = 0;
+
+   int starCount = 0;
+   int starsFilled = 0;
+   int starStatus[3] = {0, 0, 0};
+   float starScales[3] = {1.0f, 1.0f, 1.0f};
+   float starTimer = 0.0f;
 };

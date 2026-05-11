@@ -104,14 +104,16 @@ void drawTextureCentered(Texture texture, Vector2 position, Vector2 size, Color 
    DrawTexturePro(texture, getSource(texture), getRectangle(position, size), getOrigin(size), rotation, color);
 }
 
-void drawTextureAnimated(TextureAA3 &anim, Vector2 position, Vector2 size, Color color) {
+void drawTextureAnimated(TextureAA3 &anim, Vector2 position, Vector2 size, Color color, bool paused) {
    if (!hasAnimation(anim.name)) {
       drawTexture(getTexture(anim.name), position, size, color);
       return;
    }
 
    Animation &animation = getAnimation(anim.name);
-   anim.timer += GetFrameTime();
+   if (!paused) {
+      anim.timer += GetFrameTime();
+   }
    
    if (anim.timer >= animation.animationSpeed) {
       anim.timer -= animation.animationSpeed;
@@ -127,14 +129,16 @@ void drawTextureAnimated(TextureAA3 &anim, Vector2 position, Vector2 size, Color
    DrawTexturePro(getTexture(anim.name), source, getRectangle(position, size), {0.0f, 0.0f}, 0.0f, color);
 }
 
-void drawTextureAnimatedCentered(TextureAA3 &anim, Vector2 position, Vector2 size, Color color) {
+void drawTextureAnimatedCentered(TextureAA3 &anim, Vector2 position, Vector2 size, Color color, bool paused) {
    if (!hasAnimation(anim.name)) {
       drawTextureCentered(getTexture(anim.name), position, size, color);
       return;
    }
 
    Animation &animation = getAnimation(anim.name);
-   anim.timer += GetFrameTime();
+   if (!paused) {
+      anim.timer += GetFrameTime();
+   }
    
    if (anim.timer >= animation.animationSpeed) {
       anim.timer -= animation.animationSpeed;

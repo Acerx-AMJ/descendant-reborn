@@ -127,9 +127,11 @@ void Map::init(const Level &level, CameraAA3 &camera, Player &player) {
    coinTile = level.coinTile;
    sizeX = level.sizeX;
    sizeY = level.sizeY;
+   time = level.time;
+   perfectTime = level.perfectTime;
 }
 
-void Map::render(Player &player, const Rectangle &bounds) {
+void Map::render(Player &player, const Rectangle &bounds, bool paused) {
    float coinOffset = sin(GetTime() * 0.75f) * (5.0f / tileSize);
    
    drawnRootTiles.clear();
@@ -138,7 +140,7 @@ void Map::render(Player &player, const Rectangle &bounds) {
          Tile &tile = floor[y][x];
 
          if (tile.tileType == Tile::TileType::root) {
-            drawTextureAnimated(tile.texture, V2(x, y) * tileSize, V2(tile.width, tile.height) * tileSize, floorColor);
+            drawTextureAnimated(tile.texture, V2(x, y) * tileSize, V2(tile.width, tile.height) * tileSize, floorColor, paused);
          }
          else if (tile.tileType == Tile::TileType::ghost && (tile.rootPosition.x < bounds.x || tile.rootPosition.y < bounds.y)) {
             Vector2 pos = tile.rootPosition;
@@ -148,7 +150,7 @@ void Map::render(Player &player, const Rectangle &bounds) {
 
             drawnRootTiles.insert(pos);
             Tile &tile = floor[pos.y][pos.x];
-            drawTextureAnimated(tile.texture, pos * tileSize, V2(tile.width, tile.height) * tileSize, floorColor);
+            drawTextureAnimated(tile.texture, pos * tileSize, V2(tile.width, tile.height) * tileSize, floorColor, paused);
          }
       }
    }
@@ -160,7 +162,7 @@ void Map::render(Player &player, const Rectangle &bounds) {
 
          if (tile.tileType == Tile::TileType::root) {
             Vector2 position = V2(x, y + (tile.type == Tile::Type::coin) * coinOffset) * tileSize;
-            drawTextureAnimated(tile.texture, position, V2(tile.width, tile.height) * tileSize, WHITE);
+            drawTextureAnimated(tile.texture, position, V2(tile.width, tile.height) * tileSize, WHITE, paused);
          }
          else if (tile.tileType == Tile::TileType::ghost && (tile.rootPosition.x < bounds.x || tile.rootPosition.y < bounds.y)) {
             Vector2 pos = tile.rootPosition;
@@ -172,12 +174,12 @@ void Map::render(Player &player, const Rectangle &bounds) {
             Tile &tile = tiles[pos.y][pos.x];
 
             pos.y += (tile.type == Tile::Type::coin) * coinOffset;
-            drawTextureAnimated(tile.texture, pos * tileSize, V2(tile.width, tile.height) * tileSize, WHITE);
+            drawTextureAnimated(tile.texture, pos * tileSize, V2(tile.width, tile.height) * tileSize, WHITE, paused);
          }
       }
    }
 
-   renderParticles();
+   renderParticles(getCoinParticleCluster());
    player.render();
 }
 

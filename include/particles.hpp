@@ -1,5 +1,6 @@
 #pragma once
 #include <raylib.h>
+#include <vector>
 
 struct Particle {
    Texture2D *texture;
@@ -13,10 +14,12 @@ struct Particle {
 };
 
 void updateParticles();
-void renderParticles();
-void spawnParticles(const Particle &particle, int count);
-void spawnParticles(const Particle &minimum, const Particle &maximum, int count);
+void renderParticles(std::vector<Particle> &cluster);
 
 // presets
 
 void spawnCoinParticles(const Vector2 &position, Texture *texture);
+void spawnStarParticles(const Vector2 &position);
+
+std::vector<Particle> &getCoinParticleCluster();
+std::vector<Particle> &getStarParticleCluster();

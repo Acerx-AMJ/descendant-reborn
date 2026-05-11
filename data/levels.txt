@@ -13,6 +13,8 @@ width=1              # Width of the level in tiles.
 height=1             # Height of the level in tiles.
 floor=0              # Floor tile IDs. Offset by 2 as 0 - empty and 1 - spawn point.
 map=1                # Map tile IDs. Offset by 2 as 0 - empty and 1 - spawn point.
+time=5.0             # Time required for the third star.
+perfectTime=3.0      # Time required to perfect the level.
 [END]
 
 name=My Level

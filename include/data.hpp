@@ -13,6 +13,8 @@ struct Level {
    std::string timerTile;
    size_t sizeX = 0;
    size_t sizeY = 0;
+   float time = 0.0f;
+   float perfectTime = 0.0f;
    std::vector<std::vector<size_t>> floor;
    std::vector<std::vector<size_t>> map;
 };

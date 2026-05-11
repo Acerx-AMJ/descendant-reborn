@@ -17,7 +17,7 @@ constexpr Color floorColor = {95, 95, 135, 255};
 
 struct Map {
    void init(const Level &level, CameraAA3 &camera, Player &player);
-   void render(Player &player, const Rectangle &bounds);
+   void render(Player &player, const Rectangle &bounds, bool paused);
 
    // utillity
 
@@ -32,6 +32,8 @@ struct Map {
    size_t collectedCoins = 0;
    size_t sizeX = 0;
    size_t sizeY = 0;
+   float time = 0.0f;
+   float perfectTime = 0.0f;
    std::vector<std::vector<Tile>> tiles;
    std::vector<std::vector<Tile>> floor;
    std::unordered_set<Vector2, Vector2Hash> drawnRootTiles;

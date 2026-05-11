@@ -2,8 +2,11 @@
 #include "asset.hpp"
 #include "data.hpp"
 #include "input.hpp"
+#include "math.hpp"
 #include "menu_state.hpp"
+#include "particles.hpp"
 #include "render.hpp"
+#include "sound.hpp"
 #include <raymath.h>
 
 GameState::GameState() {
@@ -71,9 +74,37 @@ void GameState::update() {
          fadingOut = true;
       }
 
-      if (wonMenuText->clicked || handleKeyPressWithSound(KEY_ESCAPE)) {
+      if (wonMenuText->clicked) {
          shouldGoToMainMenu = true;
          fadingOut = true;
+      }
+
+      if (starsFilled < 3) {
+         starTimer += GetFrameTime();
+
+         if (starTimer >= 0.55f) {
+            float &scale = starScales[starsFilled];
+            
+            if (scale == 1.0f) {
+               scale = 1.66f;
+
+               bool isAStar = starsFilled < starCount;
+               starStatus[starsFilled] = isAStar;
+               playSound(isAStar ? "hit" : "hit_small");
+
+               if (starsFilled == 2 && isAStar) {
+                  camera.shake(35.0f, 0.7f);
+                  spawnStarParticles(V2(1600.0f, 300.0f) * getCubicRatio());
+               }
+            }
+
+            scale *= 1.0f - GetFrameTime() * 2.0f;
+            if (scale <= 1.0f) {
+               scale = 1.0f;
+               starTimer -= 0.55f;
+               starsFilled += 1;
+            }
+         }
       }
       return;
    }
@@ -111,6 +142,9 @@ void GameState::update() {
       return;
    }
 
+   if (startCountingTime) {
+      gameTime += GetFrameTime();
+   }
    pausedTimer = fmax(0.0f, pausedTimer - GetFrameTime() * 2.0f);
    camera.updateControls();
 }
@@ -121,6 +155,8 @@ float fadeBlur(float t) {
 }
 
 void GameState::render() {
+   bool paused = state != State::playing;
+   
    // game world
    if (pausedTimer != 0.0f) {
       Shader shader = getShader("blur");
@@ -133,7 +169,7 @@ void GameState::render() {
       BeginTextureMode(pausedTexture);
       ClearBackground(BLACK);
       BeginMode2D(camera.camera);
-         map.render(player, cameraBounds);
+         map.render(player, cameraBounds, paused);
       EndMode2D();
       EndTextureMode();
 
@@ -143,7 +179,7 @@ void GameState::render() {
    }
    else {
       BeginMode2D(camera.camera);
-         map.render(player, cameraBounds);
+         map.render(player, cameraBounds, paused);
       EndMode2D();
    }
 
@@ -161,6 +197,24 @@ void GameState::render() {
       if (wonNavig.anySelected()) {
          drawTextureCentered(getTexture("lotus"), {cr * 50.0f, wonNavig.getSelectedElement()->position.y}, cubicSize(65.0f + 10.0f * sin(GetTime() * 3.0f)), WHITE, GetTime() * 40.0f);
       }
+
+      // draw the stars
+      for (int i = 0; i < 3; ++i) {
+         Texture texture = getTexture(starStatus[i] == 1 ? "star" : "unknown");
+         Vector2 position = V2(1200.0f, 300.0f) * cr; // star 1
+         float rotation = -22.5f;
+         
+         if (i == 1) {
+            position = V2(1400.0f, 250.0f) * cr; // star 2
+            rotation = 0.0f;
+         }
+         else if (i == 2) {
+            position = V2(1600.0f, 300.0f) * cr; // star 3
+            rotation = 22.5f;
+         }
+         drawTextureCentered(texture, position, V2(70.0f) * cr * starScales[i], WHITE, rotation);
+      }
+      renderParticles(getStarParticleCluster());
       return;
    }
 
@@ -181,21 +235,31 @@ void GameState::render() {
 
    float down = GetScreenHeight() - 50.0f * cr;
 
-   drawTextureAnimatedCentered(coinAnimation, {cr * 720.0f, down}, cubicSize(50.0f), WHITE);
+   drawTextureAnimatedCentered(coinAnimation, {cr * 720.0f, down}, cubicSize(50.0f), WHITE, paused);
    drawTextSemiCentered(font, {cr * 760.0f, down}, TextFormat("%lu/%lu", map.collectedCoins, map.coinCount), 35.0f, WHITE);
 
-   drawTextureAnimatedCentered(timerAnimation, {cr * 1300.0f, down}, cubicSize(50.0f), WHITE);
-   drawTextSemiCentered(font, {cr * 1340.0f, down}, TextFormat("temp text."), 35.0f, WHITE);
+   drawTextureAnimatedCentered(timerAnimation, {cr * 1300.0f, down}, cubicSize(50.0f), WHITE, paused || !startCountingTime);
+   drawTextSemiCentered(font, {cr * 1340.0f, down}, (startCountingTime ? TextFormat("%.2f", gameTime) : "--.--"), 35.0f, WHITE);
 }
 
 void GameState::fixedUpdate() {
    if (state != State::paused && state != State::won) {
       player.update(map);
 
+      if (!startCountingTime && (player.direction.x != 0.0f || player.direction.y != 0.0f)) {
+         playSound("horn");
+         startCountingTime = true;
+      }
+
       if (player.finished) {
+         playSound("win");
          pausedTimer = 0.0f;
          state = State::won;
-         camera.shake(20.0f, 0.3f);
+         camera.shake(30.0f, 0.5f);
+
+         starCount += (map.coinCount <= map.collectedCoins);
+         starCount += (map.coinCount <= map.collectedCoins * 2);
+         starCount += (gameTime <= map.time);
       }
    }
    camera.update();

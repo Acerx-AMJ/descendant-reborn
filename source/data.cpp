@@ -126,6 +126,12 @@ void loadLevels() {
       else if (field == "height") {
          getFieldAsSimpleValue(stream, value, line, level.sizeY);
       }
+      else if (field == "time") {
+         getFieldAsSimpleValue(stream, value, line, level.time);
+      }
+      else if (field == "perfectTime") {
+         getFieldAsSimpleValue(stream, value, line, level.perfectTime);
+      }
       else if (field == "floor" || field == "map") {
          std::vector<std::vector<size_t>> &container = (field == "map" ? level.map : level.floor);
          container.clear();
