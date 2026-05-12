@@ -31,6 +31,7 @@ GameState::GameState() {
    cameraUI.init(nullptr, getRectangle({0, 0}, getScreenSize()), getScreenCenter(), 1.0f, 1.0f, 1.0f);
    cameraUI.update();
 
+   resultText = getRandomDefaultResultLine();
    pausedTexture.id = 0;
    updateResponsiveness();
 
@@ -231,23 +232,37 @@ void GameState::updateWonState() {
    if (starsFilled < 3) {
       starTimer += GetFrameTime();
 
-      if (starTimer >= 0.55f) {
-         float &scale = starScales[starsFilled];
-         
-         if (scale == 1.0f) {
-            scale = 1.66f;
+      float &scale = starScales[starsFilled];
+      if (starTimer >= 0.55f && scale == 1.0f) {
+         scale = 1.66f;
 
-            bool isAStar = starsFilled < starCount;
-            starStatus[starsFilled] = isAStar;
-            playSound(isAStar ? "hit" : "hit_small");
+         bool isAStar = starsFilled < starCount;
+         starStatus[starsFilled] = isAStar;
+         playSound(isAStar ? "hit" : "hit_small");
 
-            if (starsFilled == 2 && isAStar) {
+         if (starsFilled == 2) {
+            if (isAStar) {
                camera.shake(35.0f, 0.6f);
                cameraUI.shake(35.0f, 0.6f);
                spawnStarParticles(V2(1600.0f, 300.0f) * getCubicRatio());
             }
-         }
 
+            // data.cpp:loadResults for explanation
+            size_t finalResult = 0;
+            if (gameTime <= map.perfectTime && starCount == 3) {
+               finalResult = 4;
+               playSound("win");
+            }
+            else {
+               finalResult = starCount;
+            }
+
+            resultText = getRandomResultLineBasedOnPerformance(finalResult);
+            resultScale = 1.66f;
+         }
+      }
+
+      if (starTimer >= 0.55f) {
          scale *= 1.0f - GetFrameTime() * 2.0f;
          if (scale <= 1.0f) {
             scale = 1.0f;
@@ -255,6 +270,10 @@ void GameState::updateWonState() {
             starsFilled += 1;
          }
       }
+   }
+
+   if (starTimer >= 0.55f) {
+      resultScale = fmax(1.0f, resultScale * (1.0f - GetFrameTime() * 2.0f));
    }
 }
 
@@ -308,4 +327,5 @@ void GameState::renderWonState() {
       drawTextureCentered(texture, position, V2(110.0f) * cr * starScales[i], WHITE, rotation);
    }
    renderParticles(getStarParticleCluster());
+   drawTextCentered(font, V2(1450.0f, 425.0f), resultText.c_str(), 70.0f * resultScale, WHITE, 12.5f);
 }

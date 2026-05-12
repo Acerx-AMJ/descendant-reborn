@@ -70,20 +70,20 @@ Rectangle getRectangle(Vector2 position, Vector2 size) {
 
 // render module
 
-void drawText(Font font, Vector2 position, const char *text, float fontSize, Color color) {
-   DrawTextPro(font, text, position, {0.0f, 0.0f}, 0.0f, getFontSize(fontSize), getFontSize(1.0f), color);
+void drawText(Font font, Vector2 position, const char *text, float fontSize, Color color, float rotation) {
+   DrawTextPro(font, text, position, {0.0f, 0.0f}, rotation, getFontSize(fontSize), getFontSize(1.0f), color);
 }
 
-void drawTextCentered(Font font, Vector2 position, const char *text, float fontSize, Color color) {
+void drawTextCentered(Font font, Vector2 position, const char *text, float fontSize, Color color, float rotation) {
    float fontSizeScaled = getFontSize(fontSize);
    float spacingScaled = getFontSize(1.0f);
-   DrawTextPro(font, text, position, getTextOrigin(font, text, fontSizeScaled, spacingScaled), 0.0f, fontSizeScaled, spacingScaled, color);
+   DrawTextPro(font, text, position, getTextOrigin(font, text, fontSizeScaled, spacingScaled), rotation, fontSizeScaled, spacingScaled, color);
 }
 
-void drawTextSemiCentered(Font font, Vector2 position, const char *text, float fontSize, Color color) {
+void drawTextSemiCentered(Font font, Vector2 position, const char *text, float fontSize, Color color, float rotation) {
    float fontSizeScaled = getFontSize(fontSize);
    float spacingScaled = getFontSize(1.0f);
-   DrawTextPro(font, text, position, {0.0f, getTextOrigin(font, text, fontSizeScaled, spacingScaled).y}, 0.0f, fontSizeScaled, spacingScaled, color);
+   DrawTextPro(font, text, position, {0.0f, getTextOrigin(font, text, fontSizeScaled, spacingScaled).y}, rotation, fontSizeScaled, spacingScaled, color);
 }
 
 void drawTextRatio(Font font, Vector2 ratio, const char *text, float fontSize, Color color) {

@@ -2,7 +2,7 @@ Abyss Ascendant 3!
 Made by Daniel Vishnevsky!
 Made with C++ and Raylib!
 Using the power of plain text to show you this message!
-Edit assets/splash.txt for your own messages!
+Edit 'data/splash.txt' for your own messages!
 Splash.
 In development.
 Undefined behavior included!

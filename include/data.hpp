@@ -56,6 +56,7 @@ void loadChapters();
 void loadLevels();
 void loadTiles();
 void loadAnimations();
+void loadResults();
 
 size_t getPlayerIconCount();
 std::string &getPlayerIcon(size_t ID);
@@ -82,6 +83,12 @@ void initAnimationIfExists(TextureAA3 &texture, const std::string &name);
 bool hasAnimation(const std::string &name);
 Animation &getAnimation(const std::string &name);
 std::unordered_map<std::string, Animation> &getAnimationContainer();
+
+std::string &getRandomResultLineBasedOnPerformance(size_t performance);
+std::vector<Color> &getResultColorSchemeBasedOnPerformance(size_t performance);
+
+std::string &getRandomDefaultResultLine();
+std::vector<Color> &getDefaultResultColorScheme();
 
 // player data module
 

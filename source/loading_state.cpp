@@ -11,7 +11,7 @@ LoadingState::LoadingState() {
    loadingText = "Loading Fonts... ";
    loadFont("slackey", "assets/fonts/slackey.ttf");
    loadTexture("loading", "assets/sprites/loading.png");
-   splash = getRandomLineFromFile("assets/splash.txt");
+   splash = getRandomLineFromFile("data/splash.txt");
    splash = wrap(splash, getFont("slackey"), GetScreenWidth() - 50.0f * getWidthRatio(), getFontSize(50.0f), getFontSize(1.0f));
 }
 

@@ -52,6 +52,10 @@ private:
    int viewPortSizeShaderLocation = 0;
    int fadeShaderLocation = 0;
 
+   std::string resultText;
+   float resultScale = 1.0f;
+   bool evaluatedResult = false;
+   
    int starCount = 0;
    int starsFilled = 0;
    int starStatus[3] = {0, 0, 0};

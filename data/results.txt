@@ -1,0 +1,69 @@
+# Empty lines and lines starting with "#" are ignored.
+
+[DEFAULT]
+[LINES]
+???
+[COLORS]
+1.0 1.0 1.0
+[END]
+
+[0-STARS]
+[LINES]
+Horrible!
+[COLORS]
+1.0 0.0 0.0
+1.0 1.0 0.0
+0.0 1.0 0.0
+0.0 1.0 1.0
+0.0 0.0 1.0
+1.0 0.0 1.0
+[END]
+
+[1-STARS]
+[LINES]
+Okay.
+[COLORS]
+1.0 0.0 0.0
+1.0 1.0 0.0
+0.0 1.0 0.0
+0.0 1.0 1.0
+0.0 0.0 1.0
+1.0 0.0 1.0
+[END]
+
+[2-STARS]
+[LINES]
+Good!
+[COLORS]
+1.0 1.0 1.0
+0.0 0.0 0.0
+[END]
+
+[3-STARS]
+[LINES]
+Amazing!
+Nice!
+[COLORS]
+1.0 0.0 0.0
+1.0 1.0 0.0
+0.0 1.0 0.0
+0.0 1.0 1.0
+0.0 0.0 1.0
+1.0 0.0 1.0
+[END]
+
+[PERFECT]
+[LINES]
+Perfect!
+[COLORS]
+1.0 0.0 0.5
+0.5 0.0 1.0
+[END]
+
+[NEW-RECORD]
+[LINES]
+New Record!
+Wow! Record!
+[COLORS]
+1.0 1.0 0.0
+[END]

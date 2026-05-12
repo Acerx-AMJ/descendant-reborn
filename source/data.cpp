@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
+#include "raymath.h"
 
 static std::vector<std::string> playerIconContainer;
 static std::vector<Vector3> playerColorContainer;
@@ -11,6 +12,10 @@ static std::vector<std::string> chapterContainer;
 static std::vector<Level> levelContainer;
 static std::vector<Tile> tileContainer;
 static std::unordered_map<std::string, Animation> animationContainer;
+
+static constexpr size_t differentPerformanceCount = 6;
+static std::vector<std::vector<std::string>> resultLineContainer (differentPerformanceCount + 1);
+static std::vector<std::vector<Color>> resultColorSchemeContainer (differentPerformanceCount + 1);
 
 static std::unordered_map<std::string, size_t> tileNameMap;
 
@@ -29,6 +34,8 @@ void loadData() {
    loadLevels();
    printf("Loading animations from 'data/animations.txt'...\n");
    loadAnimations();
+   printf("Loading result lines from 'data/results.txt'...\n");
+   loadResults();
    printf("Loading successful!\n");
 }
 
@@ -298,6 +305,70 @@ void loadAnimations() {
    }
 }
 
+void loadResults() {
+   std::vector<std::string> lines = getLinesFromFileIgnoringCommentsAndEmptyLines("data/results.txt");
+   std::stringstream stream;
+
+   size_t index = 0;
+   std::vector<std::string> results;
+   std::vector<Color> scheme;
+   bool lineMode = true;
+
+   for (const std::string &line: lines) {
+      if (line == "[0-STARS]") {
+         index = 0;
+      }
+      else if (line == "[1-STARS]") {
+         index = 1;
+      }
+      else if (line == "[2-STARS]") {
+         index = 2;
+      }
+      else if (line == "[3-STARS]") {
+         index = 3;
+      }
+      else if (line == "[PERFECT]") {
+         index = 4;
+      }
+      else if (line == "[NEW-RECORD]") {
+         index = 5;
+      }
+      else if (line == "[DEFAULT]") {
+         index = 6;
+      }
+      else if (line == "[END]") {
+         resultLineContainer[index] = results;
+         results.clear();
+         resultColorSchemeContainer[index] = scheme;
+         scheme.clear();
+         index = 0;
+      }
+      else if (line == "[LINES]") {
+         lineMode = true;
+      }
+      else if (line == "[COLORS]") {
+         lineMode = false;
+      }
+      else if (lineMode) {
+         results.push_back(line);
+      }
+      else {
+         stream.clear();
+         stream.str(line);
+
+         Vector3 color;
+         stream >> color.x >> color.y >> color.z;
+         color *= 255;
+
+         if (stream.rdbuf()->in_avail() != 0) {
+            printf("WARNING: Malformed line: '%s'. %ld excess characters, expected 3 real numbers.\n", line.c_str(), stream.rdbuf()->in_avail());
+            continue;
+         }
+         scheme.push_back({(unsigned char)color.x, (unsigned char)color.y, (unsigned char)color.z, 255});
+      }
+   }
+}
+
 size_t getPlayerIconCount() {
    return playerIconContainer.size();
 }
@@ -406,6 +477,28 @@ Animation &getAnimation(const std::string &name) {
 
 std::unordered_map<std::string, Animation> &getAnimationContainer() {
    return animationContainer;
+}
+
+std::string &getRandomResultLineBasedOnPerformance(size_t performance) {
+   if (performance >= differentPerformanceCount) {
+      performance = 0;
+   }
+   return randomVectorAccess(resultLineContainer[performance]);
+}
+
+std::vector<Color> &getResultColorSchemeBasedOnPerformance(size_t performance) {
+   if (performance >= differentPerformanceCount) {
+      performance = 0;
+   }
+   return resultColorSchemeContainer[performance];
+}
+
+std::string &getRandomDefaultResultLine() {
+   return randomVectorAccess(resultLineContainer.back());
+}
+
+std::vector<Color> &getDefaultResultColorScheme() {
+   return resultColorSchemeContainer.back();
 }
 
 // player data module
