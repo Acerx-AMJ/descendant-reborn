@@ -17,6 +17,14 @@ struct GameState: public State {
    void updateResponsiveness() override;
    State *change() override;
 
+   void updatePlayingState();
+   void updatePausedState();
+   void updateWonState();
+
+   void renderPlayingState();
+   void renderPausedState();
+   void renderWonState();
+
 private:
 
    enum class State {playing, paused, won};
@@ -24,7 +32,7 @@ private:
    State state = State::playing;
    Player player;
    Rectangle cameraBounds;
-   CameraAA3 camera;
+   CameraAA3 camera, cameraUI;
    Map map;
 
    Button pauseButton, restartButton;

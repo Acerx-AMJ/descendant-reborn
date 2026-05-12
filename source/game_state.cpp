@@ -24,9 +24,12 @@ GameState::GameState() {
    wonMenuText = Text::make(font, "MAIN MENU", 50.0f);
    wonNavig.addElements({wonNextText, wonRestartText, wonMenuText});
 
-   Shader shader = getShader("blur");
-   viewPortSizeShaderLocation = GetShaderLocation(shader, "viewport");
-   fadeShaderLocation = GetShaderLocation(shader, "fade");
+   Shader blurShader = getShader("blur");
+   viewPortSizeShaderLocation = GetShaderLocation(blurShader, "viewport");
+   fadeShaderLocation = GetShaderLocation(blurShader, "fade");
+
+   cameraUI.init(nullptr, getRectangle({0, 0}, getScreenSize()), getScreenCenter(), 1.0f, 1.0f, 1.0f);
+   cameraUI.update();
 
    pausedTexture.id = 0;
    updateResponsiveness();
@@ -60,186 +63,53 @@ void GameState::calculateCameraBounds() {
 }
 
 void GameState::update() {
-   if (state == State::won) {
-      pausedTimer = fmin(1.0f, pausedTimer + GetFrameTime());
-      wonNavig.update();
-
-      if (wonNextText->clicked) {
-         shouldGoToNextLevel = true;
-         fadingOut = true;
-      }
-
-      if (wonRestartText->clicked || handleKeyPressWithSound(KEY_R)) {
-         shouldRestart = true;
-         fadingOut = true;
-      }
-
-      if (wonMenuText->clicked) {
-         shouldGoToMainMenu = true;
-         fadingOut = true;
-      }
-
-      if (starsFilled < 3) {
-         starTimer += GetFrameTime();
-
-         if (starTimer >= 0.55f) {
-            float &scale = starScales[starsFilled];
-            
-            if (scale == 1.0f) {
-               scale = 1.66f;
-
-               bool isAStar = starsFilled < starCount;
-               starStatus[starsFilled] = isAStar;
-               playSound(isAStar ? "hit" : "hit_small");
-
-               if (starsFilled == 2 && isAStar) {
-                  camera.shake(35.0f, 0.7f);
-                  spawnStarParticles(V2(1600.0f, 300.0f) * getCubicRatio());
-               }
-            }
-
-            scale *= 1.0f - GetFrameTime() * 2.0f;
-            if (scale <= 1.0f) {
-               scale = 1.0f;
-               starTimer -= 0.55f;
-               starsFilled += 1;
-            }
-         }
-      }
-      return;
+   switch (state) {
+   case State::playing: updatePlayingState(); break;
+   case State::paused:  updatePausedState();  break;
+   case State::won:     updateWonState();     break;
    }
-
-   pauseButton.update();
-   restartButton.update();
-
-   if (pauseButton.clicked || handleKeyPressWithSound(KEY_ESCAPE)) {
-      state = (state == State::paused ? State::playing : State::paused);
-      pauseNavig.resetIndex();
-   }
-
-   if (restartButton.clicked || handleKeyPressWithSound(KEY_R)) {
-      shouldRestart = true;
-      fadingOut = true;
-   }
-
-   if (state == State::paused) {
-      pausedTimer = fmin(1.0f, pausedTimer + GetFrameTime() * 2.0f);
-      pauseNavig.update();
-
-      if (continueText->clicked) {
-         state = State::playing;
-      }
-
-      if (restartText->clicked) {
-         shouldRestart = true;
-         fadingOut = true;
-      }
-
-      if (menuText->clicked) {
-         shouldGoToMainMenu = true;
-         fadingOut = true;
-      }
-      return;
-   }
-
-   if (startCountingTime) {
-      gameTime += GetFrameTime();
-   }
-   pausedTimer = fmax(0.0f, pausedTimer - GetFrameTime() * 2.0f);
-   camera.updateControls();
-}
-
-float fadeBlur(float t) {
-    t = fmax(0.0f, fmin(1.0f, t));
-    return t * t * (3.0f - 2.0f * t);
 }
 
 void GameState::render() {
+   Shader shader = getShader("blur");
+   Vector2 size = getScreenSize();
+   float fade = pausedTimer * pausedTimer * (3.0f - 2.0f * pausedTimer);
    bool paused = state != State::playing;
-   
-   // game world
-   if (pausedTimer != 0.0f) {
-      Shader shader = getShader("blur");
-      Vector2 size = getScreenSize();
-      float fade = fadeBlur(pausedTimer);
 
-      SetShaderValue(shader, viewPortSizeShaderLocation, &size, SHADER_UNIFORM_VEC2);
-      SetShaderValue(shader, fadeShaderLocation, &fade, SHADER_UNIFORM_FLOAT);
+   SetShaderValue(shader, viewPortSizeShaderLocation, &size, SHADER_UNIFORM_VEC2);
+   SetShaderValue(shader, fadeShaderLocation, &fade, SHADER_UNIFORM_FLOAT);
 
-      BeginTextureMode(pausedTexture);
-      ClearBackground(BLACK);
-      BeginMode2D(camera.camera);
-         map.render(player, cameraBounds, paused);
-      EndMode2D();
-      EndTextureMode();
+   BeginTextureMode(pausedTexture);
+   ClearBackground(BLACK);
+   BeginMode2D(camera.camera);
+      map.render(player, cameraBounds, paused);
+   EndMode2D();
+   EndTextureMode();
 
-      BeginShaderMode(shader);
-         DrawTextureRec(pausedTexture.texture, {0, 0, (float)pausedTexture.texture.width, (float)-pausedTexture.texture.height}, {0.0f, 0.0f}, WHITE);
-      EndShaderMode();
-   }
-   else {
-      BeginMode2D(camera.camera);
-         map.render(player, cameraBounds, paused);
-      EndMode2D();
-   }
+   BeginShaderMode(shader);
+      DrawTextureRec(pausedTexture.texture, {0, 0, (float)pausedTexture.texture.width, (float)-pausedTexture.texture.height}, {0.0f, 0.0f}, WHITE);
+   EndShaderMode();
 
-   // ui
-   Font font = getFont("slackey");
-   float cr = getCubicRatio();
-
-   if (state == State::won) {
-      DrawRectangleV({0.0f, 0.0f}, getScreenSize(), Fade(BLACK, pausedTimer / 2.0f));
-      DrawRectangleV({0.0f, 0.0f}, {500.0f * cr, GetScreenHeight() * 1.0f}, Fade(BLACK, 0.5f));
-      drawTextSemiCentered(font, {cr * 100.0f, cr * 100.0f}, "Level Beat!", 50.0f, WHITE);
-      drawTextSemiCentered(font, {cr * 100.0f, cr * 150.0f}, "Next: TODO: add", 35.0f, {200, 200, 200, 255});
-      wonNavig.render();
-
-      if (wonNavig.anySelected()) {
-         drawTextureCentered(getTexture("lotus"), {cr * 50.0f, wonNavig.getSelectedElement()->position.y}, cubicSize(65.0f + 10.0f * sin(GetTime() * 3.0f)), WHITE, GetTime() * 40.0f);
+   BeginMode2D(cameraUI.camera);
+      switch (state) {
+      case State::playing: renderPlayingState(); break;
+      case State::paused:  renderPausedState();  break;
+      case State::won:     renderWonState();     break;
       }
 
-      // draw the stars
-      for (int i = 0; i < 3; ++i) {
-         Texture texture = getTexture(starStatus[i] == 1 ? "star" : "unknown");
-         Vector2 position = V2(1200.0f, 300.0f) * cr; // star 1
-         float rotation = -22.5f;
-         
-         if (i == 1) {
-            position = V2(1400.0f, 250.0f) * cr; // star 2
-            rotation = 0.0f;
-         }
-         else if (i == 2) {
-            position = V2(1600.0f, 300.0f) * cr; // star 3
-            rotation = 22.5f;
-         }
-         drawTextureCentered(texture, position, V2(70.0f) * cr * starScales[i], WHITE, rotation);
+      if (state == State::won) {
+         return;
       }
-      renderParticles(getStarParticleCluster());
-      return;
-   }
+      Font font = getFont("slackey");
+      float cr = getCubicRatio();
+      float down = GetScreenHeight() - 50.0f * cr;
 
-   if (state == State::paused) {
-      DrawRectangleV({0.0f, 0.0f}, {500.0f * cr, GetScreenHeight() * 1.0f}, Fade(BLACK, 0.5f));
-      drawTextSemiCentered(font, {cr * 100.0f, cr * 100.0f}, map.name.c_str(), 50.0f, WHITE);
-      drawTextSemiCentered(font, {cr * 100.0f, cr * 150.0f}, map.chapter.c_str(), 35.0f, {200, 200, 200, 255});
-      pauseNavig.render();
+      drawTextureAnimatedCentered(coinAnimation, {cr * 720.0f, down}, cubicSize(50.0f), WHITE, paused);
+      drawTextSemiCentered(font, {cr * 760.0f, down}, TextFormat("%lu/%lu", map.collectedCoins, map.coinCount), 35.0f, WHITE);
 
-      if (pauseNavig.anySelected()) {
-         drawTextureCentered(getTexture("lotus"), {cr * 50.0f, pauseNavig.getSelectedElement()->position.y}, cubicSize(65.0f + 10.0f * sin(GetTime() * 3.0f)), WHITE, GetTime() * 40.0f);
-      }
-   }
-   else {
-      pauseButton.render();
-      restartButton.render();
-   }
-
-   float down = GetScreenHeight() - 50.0f * cr;
-
-   drawTextureAnimatedCentered(coinAnimation, {cr * 720.0f, down}, cubicSize(50.0f), WHITE, paused);
-   drawTextSemiCentered(font, {cr * 760.0f, down}, TextFormat("%lu/%lu", map.collectedCoins, map.coinCount), 35.0f, WHITE);
-
-   drawTextureAnimatedCentered(timerAnimation, {cr * 1300.0f, down}, cubicSize(50.0f), WHITE, paused || !startCountingTime);
-   drawTextSemiCentered(font, {cr * 1340.0f, down}, (startCountingTime ? TextFormat("%.2f", gameTime) : "--.--"), 35.0f, WHITE);
+      drawTextureAnimatedCentered(timerAnimation, {cr * 1300.0f, down}, cubicSize(50.0f), WHITE, paused || !startCountingTime);
+      drawTextSemiCentered(font, {cr * 1340.0f, down}, (startCountingTime ? TextFormat("%.2f", gameTime) : "--.--"), 35.0f, WHITE);
+   EndMode2D();
 }
 
 void GameState::fixedUpdate() {
@@ -256,12 +126,14 @@ void GameState::fixedUpdate() {
          pausedTimer = 0.0f;
          state = State::won;
          camera.shake(30.0f, 0.5f);
+         cameraUI.shake(30.0f, 0.5f);
 
          starCount += (map.coinCount <= map.collectedCoins);
          starCount += (map.coinCount <= map.collectedCoins * 2);
          starCount += (gameTime <= map.time);
       }
    }
+   cameraUI.update();
    camera.update();
    calculateCameraBounds();
 }
@@ -290,4 +162,150 @@ State *GameState::change() {
       return new MenuState();
    }
    return nullptr;
+}
+
+void GameState::updatePlayingState() {
+   pauseButton.update();
+   restartButton.update();
+
+   if (pauseButton.clicked || handleKeyPressWithSound(KEY_ESCAPE)) {
+      state = State::paused;
+      pauseNavig.resetIndex();
+   }
+
+   if (restartButton.clicked || handleKeyPressWithSound(KEY_R)) {
+      shouldRestart = true;
+      fadingOut = true;
+   }
+
+   if (startCountingTime) {
+      gameTime += GetFrameTime();
+   }
+
+   pausedTimer = fmax(0.0f, pausedTimer - GetFrameTime() * 2.0f);
+   camera.updateControls();
+}
+
+void GameState::updatePausedState() {
+   pausedTimer = fmin(1.0f, pausedTimer + GetFrameTime() * 2.0f);
+   pauseNavig.update();
+
+   if (continueText->clicked || handleKeyPressWithSound(KEY_ESCAPE)) {
+      state = State::playing;
+   }
+
+   if (restartText->clicked || handleKeyPressWithSound(KEY_R)) {
+      shouldRestart = true;
+      fadingOut = true;
+   }
+
+   if (menuText->clicked) {
+      shouldGoToMainMenu = true;
+      fadingOut = true;
+   }
+}
+
+void GameState::updateWonState() {
+   pausedTimer = fmin(1.0f, pausedTimer + GetFrameTime());
+   wonNavig.update();
+
+   if (wonNextText->clicked) {
+      shouldGoToNextLevel = true;
+      fadingOut = true;
+      return;
+   }
+
+   if (wonRestartText->clicked || handleKeyPressWithSound(KEY_R)) {
+      shouldRestart = true;
+      fadingOut = true;
+      return;
+   }
+
+   if (wonMenuText->clicked) {
+      shouldGoToMainMenu = true;
+      fadingOut = true;
+      return;
+   }
+
+   // Fill up the stars
+   if (starsFilled < 3) {
+      starTimer += GetFrameTime();
+
+      if (starTimer >= 0.55f) {
+         float &scale = starScales[starsFilled];
+         
+         if (scale == 1.0f) {
+            scale = 1.66f;
+
+            bool isAStar = starsFilled < starCount;
+            starStatus[starsFilled] = isAStar;
+            playSound(isAStar ? "hit" : "hit_small");
+
+            if (starsFilled == 2 && isAStar) {
+               camera.shake(35.0f, 0.6f);
+               cameraUI.shake(35.0f, 0.6f);
+               spawnStarParticles(V2(1600.0f, 300.0f) * getCubicRatio());
+            }
+         }
+
+         scale *= 1.0f - GetFrameTime() * 2.0f;
+         if (scale <= 1.0f) {
+            scale = 1.0f;
+            starTimer -= 0.55f;
+            starsFilled += 1;
+         }
+      }
+   }
+}
+
+void GameState::renderPlayingState() {
+   pauseButton.render();
+   restartButton.render();
+}
+
+void GameState::renderPausedState() {
+   Font font = getFont("slackey");
+   float cr = getCubicRatio();
+
+   DrawRectangleV({0.0f, 0.0f}, {500.0f * cr, GetScreenHeight() * 1.0f}, Fade(BLACK, 0.5f));
+   drawTextSemiCentered(font, {cr * 100.0f, cr * 100.0f}, map.name.c_str(), 50.0f, WHITE);
+   drawTextSemiCentered(font, {cr * 100.0f, cr * 150.0f}, map.chapter.c_str(), 35.0f, {200, 200, 200, 255});
+   pauseNavig.render();
+
+   if (pauseNavig.anySelected()) {
+      drawTextureCentered(getTexture("lotus"), {cr * 50.0f, pauseNavig.getSelectedElement()->position.y}, cubicSize(65.0f + 10.0f * sin(GetTime() * 3.0f)), WHITE, GetTime() * 40.0f);
+   }
+}
+
+void GameState::renderWonState() {
+   Font font = getFont("slackey");
+   float cr = getCubicRatio();
+
+   DrawRectangleV({0.0f, 0.0f}, getScreenSize(), Fade(BLACK, pausedTimer / 2.0f));
+   DrawRectangleV({0.0f, 0.0f}, {500.0f * cr, GetScreenHeight() * 1.0f}, Fade(BLACK, 0.5f));
+   drawTextSemiCentered(font, {cr * 100.0f, cr * 100.0f}, "Level Beat!", 50.0f, WHITE);
+   drawTextSemiCentered(font, {cr * 100.0f, cr * 150.0f}, "Next: TODO: add", 35.0f, {200, 200, 200, 255});
+   wonNavig.render();
+
+   if (wonNavig.anySelected()) {
+      drawTextureCentered(getTexture("lotus"), {cr * 50.0f, wonNavig.getSelectedElement()->position.y}, cubicSize(65.0f + 10.0f * sin(GetTime() * 3.0f)), WHITE, GetTime() * 40.0f);
+   }
+
+   // draw the stars
+   for (int i = 0; i < 3; ++i) {
+      Texture texture = getTexture(starStatus[i] == 1 ? "star" : "unknown");
+      Vector2 position = V2(1200.0f, 300.0f) * cr; // star 1
+      float rotation = -22.5f;
+      
+      if (i == 1) {
+         position = V2(1400.0f, 250.0f) * cr; // star 2
+         rotation = 0.0f;
+      }
+      else if (i == 2) {
+         position = V2(1600.0f, 300.0f) * cr; // star 3
+         rotation = 22.5f;
+      }
+      drawTextureCentered(texture, position, V2(110.0f) * cr * starScales[i], WHITE, rotation);
+   }
+   renderParticles(getStarParticleCluster());
 }
