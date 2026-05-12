@@ -31,6 +31,7 @@ GameState::GameState() {
    cameraUI.init(nullptr, getRectangle({0, 0}, getScreenSize()), getScreenCenter(), 1.0f, 1.0f, 1.0f);
    cameraUI.update();
 
+   resultColorScheme = getDefaultResultColorScheme();
    resultText = getRandomDefaultResultLine();
    pausedTexture.id = 0;
    updateResponsiveness();
@@ -257,6 +258,7 @@ void GameState::updateWonState() {
                finalResult = starCount;
             }
 
+            resultColorScheme = getResultColorSchemeBasedOnPerformance(finalResult);
             resultText = getRandomResultLineBasedOnPerformance(finalResult);
             resultScale = 1.66f;
          }
@@ -327,5 +329,17 @@ void GameState::renderWonState() {
       drawTextureCentered(texture, position, V2(110.0f) * cr * starScales[i], WHITE, rotation);
    }
    renderParticles(getStarParticleCluster());
-   drawTextCentered(font, V2(1450.0f, 425.0f), resultText.c_str(), 70.0f * resultScale, WHITE, 12.5f);
+
+   resultColorFade += GetFrameTime() * 2.0f;
+   if (resultColorFade >= 1.0f) {
+      resultColorFade -= 1.0f;
+      resultColorIndex = (resultColorIndex + 1) % resultColorScheme.size();
+   }
+
+   Color color = ColorLerp(
+      resultColorScheme[resultColorIndex],
+      resultColorScheme[(resultColorIndex + 1) % resultColorScheme.size()],
+      resultColorFade
+   );
+   drawTextCentered(font, V2(1450.0f, 425.0f), resultText.c_str(), 70.0f * resultScale, color, 12.5f);
 }

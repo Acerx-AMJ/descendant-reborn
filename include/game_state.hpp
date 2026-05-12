@@ -52,7 +52,10 @@ private:
    int viewPortSizeShaderLocation = 0;
    int fadeShaderLocation = 0;
 
+   std::vector<Color> resultColorScheme;
    std::string resultText;
+   size_t resultColorIndex = 0;
+   float resultColorFade = 0.0f;
    float resultScale = 1.0f;
    bool evaluatedResult = false;
    
