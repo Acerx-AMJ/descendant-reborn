@@ -110,7 +110,7 @@ void GameState::render() {
       drawTextSemiCentered(font, {cr * 760.0f, down}, TextFormat("%lu/%lu", map.collectedCoins, map.coinCount), 35.0f, WHITE);
 
       drawTextureAnimatedCentered(timerAnimation, {cr * 1300.0f, down}, cubicSize(50.0f), WHITE, paused || !startCountingTime);
-      drawTextSemiCentered(font, {cr * 1340.0f, down}, (startCountingTime ? TextFormat("%.2f", gameTime) : "--.--"), 35.0f, WHITE);
+      drawTextSemiCentered(font, {cr * 1340.0f, down}, (startCountingTime ? TextFormat("%05.2f", gameTime) : "--.--"), 35.0f, WHITE);
    EndMode2D();
 }
 
@@ -330,7 +330,7 @@ void GameState::renderWonState() {
    }
    renderParticles(getStarParticleCluster());
 
-   resultColorFade += GetFrameTime() * 2.0f;
+   resultColorFade += GetFrameTime() * 3.0f;
    if (resultColorFade >= 1.0f) {
       resultColorFade -= 1.0f;
       resultColorIndex = (resultColorIndex + 1) % resultColorScheme.size();
@@ -341,5 +341,6 @@ void GameState::renderWonState() {
       resultColorScheme[(resultColorIndex + 1) % resultColorScheme.size()],
       resultColorFade
    );
-   drawTextCentered(font, V2(1450.0f, 425.0f), resultText.c_str(), 70.0f * resultScale, color, 12.5f);
+   drawTextCentered(font, V2(1550.0f, 425.0f) * cr, resultText.c_str(), 70.0f * resultScale, color, 12.5f);
+   drawTextCentered(font, V2(1400.0f, 500.0f) * cr, TextFormat("%05.2f", gameTime), 60.0f, {255, 125, 0, 255});
 }
