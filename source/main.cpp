@@ -1,3 +1,4 @@
+#include "data.hpp"
 #include "loading_state.hpp"
 #include <cstdlib>
 #include <ctime>
@@ -36,6 +37,7 @@ int main() {
       EndDrawing();
    }
 
+   savePlayerData();
    CloseWindow();
    CloseAudioDevice();
 }

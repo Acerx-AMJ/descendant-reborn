@@ -111,6 +111,7 @@ void GameState::render() {
 
       drawTextureAnimatedCentered(timerAnimation, {cr * 1300.0f, down}, cubicSize(50.0f), WHITE, paused || !startCountingTime);
       drawTextSemiCentered(font, {cr * 1340.0f, down}, (startCountingTime ? TextFormat("%05.2f", gameTime) : "--.--"), 35.0f, WHITE);
+      drawTextCentered(font, getScreenCenter(), TextFormat("%d %f %d\n", getLevelData(map.levelID).perfect, getLevelData(map.levelID).time, getLevelData(map.levelID).stars), 50.0f, WHITE);
    EndMode2D();
 }
 
@@ -133,6 +134,8 @@ void GameState::fixedUpdate() {
          starCount += (map.coinCount <= map.collectedCoins);
          starCount += (map.coinCount <= map.collectedCoins * 2);
          starCount += (gameTime <= map.time);
+         previousTime = getLevelData(map.levelID).time;
+         saveLevelDataOnNewScore({gameTime <= map.perfectTime && starCount == 3, gameTime, starCount}, map.levelID);
       }
    }
    cameraUI.update();
@@ -250,7 +253,11 @@ void GameState::updateWonState() {
 
             // data.cpp:loadResults for explanation
             size_t finalResult = 0;
-            if (gameTime <= map.perfectTime && starCount == 3) {
+            if (previousTime != std::numeric_limits<float>::max() && previousTime > gameTime) {
+               finalResult = 5;
+               playSound("win");
+            }
+            else if (gameTime <= map.perfectTime && starCount == 3) {
                finalResult = 4;
                playSound("win");
             }

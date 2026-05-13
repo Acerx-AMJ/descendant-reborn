@@ -1,6 +1,7 @@
 #include "data.hpp"
 #include "file.hpp"
 #include "math.hpp"
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
@@ -97,6 +98,7 @@ void loadLevels() {
             stack = defaultLevel;
          }
          else {
+            stack.ID = levelContainer.size();
             levelContainer.push_back(stack);
             stack = defaultLevel;
          }
@@ -504,6 +506,7 @@ std::vector<Color> &getDefaultResultColorScheme() {
 // player data module
 
 static CustomizationData customizationData;
+static std::vector<LevelData> levelData;
 
 CustomizationData getCustomizationData() {
    return customizationData;
@@ -511,7 +514,7 @@ CustomizationData getCustomizationData() {
 
 CustomizationData loadCustomizationData() {
    CustomizationData data;
-   std::fstream file ("data/cd.data", std::ios::in);
+   std::fstream file ("data/cd.data", std::ios::in | std::ios::binary);
    if (!file.is_open()) {
       return data; // default data
    }
@@ -521,7 +524,7 @@ CustomizationData loadCustomizationData() {
 }
 
 void saveCustomizationData(CustomizationData data) {
-   std::fstream file ("data/cd.data", std::ios::out);
+   std::fstream file ("data/cd.data", std::ios::out | std::ios::binary | std::ios::trunc);
    if (!file.is_open()) {
       return;
    }
@@ -530,10 +533,60 @@ void saveCustomizationData(CustomizationData data) {
    customizationData = data;
 }
 
+LevelData getLevelData(size_t ID) {
+   if (ID >= levelData.size()) {
+      printf("ERROR: Attempted to access data of invalid level %lu. Level count is %lu.\n", ID, levelData.size());
+      exit(EXIT_FAILURE);
+   }
+   return levelData[ID];
+}
+
+LevelData loadLevelData(size_t ID) {
+   LevelData data;
+   std::fstream file ("data/levels/" + std::to_string(ID) + ".data", std::ios::in | std::ios::binary);
+   if (!file.is_open()) {
+      return data; // default data
+   }
+
+   file.read(reinterpret_cast<char*>(&data), sizeof(data));
+   return data;
+}
+
+void saveLevelData(LevelData data, size_t ID) {
+   std::fstream file ("data/levels/" + std::to_string(ID) + ".data", std::ios::out | std::ios::binary | std::ios::trunc);
+   if (!file.is_open()) {
+      return;
+   }
+
+   file.write(reinterpret_cast<const char*>(&data), sizeof(data));
+   levelData[ID] = data;
+}
+
+void saveLevelDataOnNewScore(LevelData newData, size_t ID) {
+   LevelData data, oldData = levelData[ID];
+   data.perfect = oldData.perfect || newData.perfect;
+   data.time = fmin(oldData.time, newData.time);
+   data.stars = fmax(oldData.stars, newData.stars);
+
+   if (oldData.perfect != data.perfect || oldData.time != data.time || oldData.stars != data.stars) {
+      saveLevelData(data, ID);
+   }
+}
+
 void loadPlayerData() {
+   std::filesystem::create_directories("data/levels");
+   
    customizationData = loadCustomizationData();
+   levelData.resize(getLevelCount());
+   
+   for (size_t i = 0; i < getLevelCount(); ++i) {
+      levelData[i] = loadLevelData(i);
+   }
 }
 
 void savePlayerData() {
    saveCustomizationData(customizationData);
+   for (size_t i = 0; i < getLevelCount(); ++i) {
+      saveLevelData(levelData[i], i);
+   }
 }

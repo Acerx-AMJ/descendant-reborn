@@ -1,4 +1,5 @@
 #pragma once
+#include <limits>
 #include <raylib.h>
 #include <string>
 #include <unordered_map>
@@ -11,6 +12,7 @@ struct Level {
    std::string chapter;
    std::string coinTile;
    std::string timerTile;
+   size_t ID = 0;
    size_t sizeX = 0;
    size_t sizeY = 0;
    float time = 0.0f;
@@ -99,10 +101,20 @@ struct CustomizationData {
    bool shadowsEnabled = true;
 };
 
+struct LevelData {
+   bool perfect = false;
+   float time = std::numeric_limits<float>::max();
+   int stars = 0;
+};
+
 CustomizationData getCustomizationData();
 CustomizationData loadCustomizationData();
 void saveCustomizationData(CustomizationData data);
 
+LevelData getLevelData(size_t ID);
+LevelData loadLevelData(size_t ID);
+void saveLevelData(LevelData data, size_t ID);
+void saveLevelDataOnNewScore(LevelData newData, size_t ID);
+
 void loadPlayerData();
 void savePlayerData();
-

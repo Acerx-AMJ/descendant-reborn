@@ -124,6 +124,7 @@ void Map::init(const Level &level, CameraAA3 &camera, Player &player) {
 
    name = level.name;
    chapter = level.chapter;
+   levelID = level.ID;
    coinTile = level.coinTile;
    sizeX = level.sizeX;
    sizeY = level.sizeY;

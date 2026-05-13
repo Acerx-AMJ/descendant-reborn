@@ -64,4 +64,5 @@ private:
    int starStatus[3] = {0, 0, 0};
    float starScales[3] = {1.0f, 1.0f, 1.0f};
    float starTimer = 0.0f;
+   float previousTime = 0.0f;
 };
