@@ -114,7 +114,7 @@ void saveCustomizationData(CustomizationData data);
 LevelData getLevelData(size_t ID);
 LevelData loadLevelData(size_t ID);
 void saveLevelData(LevelData data, size_t ID);
-void saveLevelDataOnNewScore(LevelData newData, size_t ID);
+void saveLevelDataOnNewScore(LevelData newData, bool gotAllCoins, size_t ID);
 
 void loadPlayerData();
 void savePlayerData();

@@ -562,13 +562,13 @@ void saveLevelData(LevelData data, size_t ID) {
    levelData[ID] = data;
 }
 
-void saveLevelDataOnNewScore(LevelData newData, size_t ID) {
+void saveLevelDataOnNewScore(LevelData newData, bool gotAllCoins, size_t ID) {
    LevelData data, oldData = levelData[ID];
    data.perfect = oldData.perfect || newData.perfect;
    data.time = fmin(oldData.time, newData.time);
    data.stars = fmax(oldData.stars, newData.stars);
 
-   if (oldData.perfect != data.perfect || oldData.time != data.time || oldData.stars != data.stars) {
+   if (oldData.perfect != data.perfect || (oldData.time != data.time && gotAllCoins) || oldData.stars != data.stars) {
       saveLevelData(data, ID);
    }
 }

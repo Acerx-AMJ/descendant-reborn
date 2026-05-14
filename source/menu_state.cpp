@@ -75,7 +75,10 @@ State *MenuState::change() {
       return new CustomizeState();
    }
    else if (phase == Phase::play) {
-      return new GameState();
+      // TODO: temp
+      GameState *game = new GameState();
+      game->setup(getLevel(0));
+      return game;
    }
 
    return nullptr;
