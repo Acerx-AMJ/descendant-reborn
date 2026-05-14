@@ -119,7 +119,7 @@ void Map::init(const Level &level, CameraAA3 &camera, Player &player) {
    Vector2 spawnPosition = randomVectorAccess(spawnPositions);
    player.position = Vector2Add(spawnPosition, getOrigin(playerSize));
    player.init(bounds, getCustomizationData());
-   camera.init(&player, bounds, spawnPosition, 0.75f, 0.25f, 4.0f);
+   camera.init(&player, bounds, spawnPosition, getLevelData(level.ID).zoom, 0.25f, 4.0f);
    camera.update();
 
    name = level.name;

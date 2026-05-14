@@ -132,7 +132,7 @@ void GameState::fixedUpdate() {
          starCount += (map.coinCount <= map.collectedCoins * 2);
          starCount += (gameTime <= map.time);
          previousTime = getLevelData(map.levelID).time;
-         saveLevelDataOnNewScore({gameTime <= map.perfectTime && starCount == 3, gameTime, starCount}, map.coinCount <= map.collectedCoins, map.levelID);
+         saveLevelDataOnNewScore({gameTime <= map.perfectTime && starCount == 3, gameTime, camera.camera.zoom, starCount}, map.coinCount <= map.collectedCoins, map.levelID);
       }
    }
    cameraUI.update();
@@ -156,6 +156,8 @@ void GameState::updateResponsiveness() {
 }
 
 State *GameState::change() {
+   saveLevelZoom(map.levelID, camera.camera.zoom);
+
    if (shouldRestart) {
       GameState *game = new GameState();
       game->setup(getLevel(map.levelID));

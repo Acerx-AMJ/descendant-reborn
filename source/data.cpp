@@ -566,10 +566,19 @@ void saveLevelDataOnNewScore(LevelData newData, bool gotAllCoins, size_t ID) {
    LevelData data, oldData = levelData[ID];
    data.perfect = oldData.perfect || newData.perfect;
    data.time = fmin(oldData.time, newData.time);
+   data.zoom = newData.zoom;
    data.stars = fmax(oldData.stars, newData.stars);
 
    if (oldData.perfect != data.perfect || (oldData.time != data.time && gotAllCoins) || oldData.stars != data.stars) {
       saveLevelData(data, ID);
+   }
+}
+
+void saveLevelZoom(size_t ID, float zoom) {
+   LevelData oldData = levelData[ID];
+   if (oldData.zoom != zoom) {
+      oldData.zoom = zoom;
+      saveLevelData(oldData, ID);
    }
 }
 

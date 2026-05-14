@@ -104,6 +104,7 @@ struct CustomizationData {
 struct LevelData {
    bool perfect = false;
    float time = std::numeric_limits<float>::max();
+   float zoom = 1.0f;
    int stars = 0;
 };
 
@@ -115,6 +116,7 @@ LevelData getLevelData(size_t ID);
 LevelData loadLevelData(size_t ID);
 void saveLevelData(LevelData data, size_t ID);
 void saveLevelDataOnNewScore(LevelData newData, bool gotAllCoins, size_t ID);
+void saveLevelZoom(size_t ID, float zoom);
 
 void loadPlayerData();
 void savePlayerData();
