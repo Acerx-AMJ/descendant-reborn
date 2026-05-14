@@ -1,5 +1,6 @@
 #include "particles.hpp"
 #include "asset.hpp"
+#include "data.hpp"
 #include "math.hpp"
 #include "render.hpp"
 #include "state.hpp"
@@ -7,7 +8,7 @@
 #include <algorithm>
 #include <vector>
 
-static constexpr size_t particlePresetCount = 2;
+static constexpr size_t particlePresetCount = 3;
 static std::vector<std::vector<Particle>> particles (particlePresetCount);
 
 void updateParticles() {
@@ -29,7 +30,14 @@ void updateParticles() {
 void renderParticles(std::vector<Particle> &cluster) {
    for (Particle &particle: cluster) {
       Vector2 size = particle.size * getCubicRatio();
-      DrawTexturePro(*particle.texture, getSource(*particle.texture), getRectangle(particle.position, size), getOrigin(size), particle.rotation, Fade(WHITE, 1.0f - particle.age / particle.lifetime));
+      if (particle.texture) {
+         DrawTexturePro(*particle.texture, getSource(*particle.texture), getRectangle(particle.position, size), getOrigin(size), particle.rotation, Fade(WHITE, 1.0f - particle.age / particle.lifetime));
+      }
+      else {
+         Vector3 colorVector3 = getPlayerColor(particle.colorIndex) * 255.0f;
+         Color colorTranslated = C4(colorVector3.x, colorVector3.y, colorVector3.z, (1.0f - particle.age / particle.lifetime) * 255.0f);
+         DrawRectanglePro(getRectangle(particle.position, size), getOrigin(size), particle.rotation, colorTranslated);
+      }
    }
 }
 
@@ -49,6 +57,7 @@ void spawnParticles(const Particle &minimum, const Particle &maximum, size_t cou
          randomFloat(minimum.rotationVelocity, maximum.rotationVelocity),
          randomFloat(minimum.lifetime, maximum.lifetime),
          0.0f,
+         (minimum.texture ? 0 : rand() % getPlayerColorCount()),
       };
       cluster.push_back(particle);
    }
@@ -105,10 +114,38 @@ void spawnStarParticles(const Vector2 &position) {
    }, 25, 1);
 }
 
+void spawnConfetti() {
+   spawnParticles({
+      nullptr,
+      {0.0f, -400.0f * getCubicRatio()},
+      {-400.0f, -400.0f},
+      {0.0f, 200.0f},
+      {12.0f, 12.0f},
+      0.92f,
+      0.0f,
+      -180.0f,
+      6.0f,
+   }, {
+      nullptr,
+      {(float)GetScreenWidth(), 0.0f},
+      {400.0f, 400.0f},
+      {0.0f, 400.0f},
+      {24.0f, 24.0f},
+      0.98f,
+      360.0f,
+      180.0f,
+      8.0f,
+   }, 250, 2);
+}
+
 std::vector<Particle> &getCoinParticleCluster() {
    return particles[0];
 }
 
 std::vector<Particle> &getStarParticleCluster() {
    return particles[1];
+}
+
+std::vector<Particle> &getConfettiCluster() {
+   return particles[2];
 }

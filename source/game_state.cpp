@@ -260,7 +260,11 @@ void GameState::updateWonState() {
             size_t finalResult = 0;
             if (previousTime != std::numeric_limits<float>::max() && previousTime > gameTime && map.coinCount <= map.collectedCoins) {
                finalResult = 5;
+
+               camera.shake(35.0f, 0.6f);
+               cameraUI.shake(35.0f, 0.6f);
                playSound("win");
+               spawnConfetti();
             }
             else if (gameTime <= map.perfectTime && starCount == 3) {
                finalResult = 4;
@@ -358,4 +362,5 @@ void GameState::renderWonState() {
    if (map.coinCount <= map.collectedCoins) {
       drawTextCentered(font, V2(1400.0f, 500.0f) * cr, TextFormat("%05.2f", gameTime), 60.0f, {255, 125, 0, 255});
    }
+   renderParticles(getConfettiCluster());
 }

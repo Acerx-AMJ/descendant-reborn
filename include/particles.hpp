@@ -11,6 +11,7 @@ struct Particle {
    float rotationVelocity = 0.0f;
    float lifetime = 0.0f;
    float age = 0.0f;
+   size_t colorIndex = 0; // from player colors
 };
 
 void updateParticles();
@@ -20,6 +21,8 @@ void renderParticles(std::vector<Particle> &cluster);
 
 void spawnCoinParticles(const Vector2 &position, Texture *texture);
 void spawnStarParticles(const Vector2 &position);
+void spawnConfetti();
 
 std::vector<Particle> &getCoinParticleCluster();
 std::vector<Particle> &getStarParticleCluster();
+std::vector<Particle> &getConfettiCluster();
