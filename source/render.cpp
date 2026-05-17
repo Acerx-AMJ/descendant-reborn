@@ -169,7 +169,7 @@ void UIElement::updateInternalState(bool navigHovering, bool navigDown, bool nav
 
    hovering = actuallyHovering || navigHovering;
    down = navigDown || (actuallyHovering && IsMouseButtonDown(MOUSE_BUTTON_LEFT));
-   clicked = navigClicked || (actuallyHovering && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
+   clicked = !disabled && (navigClicked || (actuallyHovering && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)));
    setMouseOnUI(actuallyHovering);
 
    float dt = GetFrameTime();

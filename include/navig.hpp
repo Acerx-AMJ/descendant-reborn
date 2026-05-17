@@ -21,6 +21,8 @@ struct Navigation {
    Button *getSelectedButton();
    TextureRect *getTextureRect(size_t index);
    TextureRect *getSelectedTextureRect();
+   Text *getText(size_t index);
+   Text *getSelectedText();
    size_t getSelectedIndex();
 
    bool isIndexValid(size_t index);

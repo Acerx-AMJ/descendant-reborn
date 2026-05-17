@@ -53,6 +53,7 @@ struct UIElement {
    bool hovering = false;
    bool down = false;
    bool clicked = false;
+   bool disabled = false;
 
 protected:
 

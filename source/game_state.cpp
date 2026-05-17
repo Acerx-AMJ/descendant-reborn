@@ -133,6 +133,7 @@ void GameState::fixedUpdate() {
          starCount += (gameTime <= map.time);
          previousTime = getLevelData(map.levelID).time;
          saveLevelDataOnNewScore({gameTime <= map.perfectTime && starCount == 3, gameTime, camera.camera.zoom, starCount}, map.coinCount <= map.collectedCoins, map.levelID);
+         wonNextText->disabled = (map.coinCount > map.collectedCoins);
       }
    }
    cameraUI.update();
@@ -323,11 +324,22 @@ void GameState::renderWonState() {
    DrawRectangleV({0.0f, 0.0f}, getScreenSize(), Fade(BLACK, pausedTimer / 2.0f));
    DrawRectangleV({0.0f, 0.0f}, {500.0f * cr, GetScreenHeight() * 1.0f}, Fade(BLACK, 0.5f));
    drawTextSemiCentered(font, {cr * 100.0f, cr * 100.0f}, "Level Beat!", 50.0f, WHITE);
-   drawTextSemiCentered(font, {cr * 100.0f, cr * 150.0f}, "Next: TODO: add", 35.0f, {200, 200, 200, 255});
+   drawTextSemiCentered(font, {cr * 100.0f, cr * 150.0f}, ("Next: " + getLevel((map.levelID + 1) % getLevelCount()).name).c_str(), 35.0f, {200, 200, 200, 255});
    wonNavig.render();
 
-   if (wonNavig.anySelected()) {
+   if (wonNavig.anySelected() && (!wonNextText->disabled || wonNavig.getSelectedText() != wonNextText)) {
       drawTextureCentered(getTexture("lotus"), {cr * 50.0f, wonNavig.getSelectedElement()->position.y}, cubicSize(65.0f + 10.0f * sin(GetTime() * 3.0f)), WHITE, GetTime() * 40.0f);
+   }
+
+   if (wonNextText->disabled) {
+      drawTextureCentered(getTexture("lock"), {cr * 50.0f, wonNextText->position.y}, cubicSize(65.0f + 10.0f * sin(GetTime() * 3.0f)), WHITE);
+
+      if (wonNextText->hovering) {
+         Vector2 position = (wonNavig.getSelectedText() == wonNextText ? wonNextText->position : GetMousePosition());
+         Vector2 size = getTextSize(font, "You must collect all coins\n to unlock the next level!", getFontSize(40.0f), getFontSize(1.0f));
+         DrawRectanglePro(getRectangle(position, size), {0.0f, size.y / 2.0f}, 0.0f, Fade(BLACK, 0.75f));
+         drawTextSemiCentered(font, position, "You must collect all coins\n to unlock the next level!", 40.0f, WHITE);
+      }
    }
 
    // draw the stars

@@ -112,6 +112,14 @@ TextureRect *Navigation::getSelectedTextureRect() {
    return getTextureRect(index);
 }
 
+Text *Navigation::getText(size_t index) {
+   return isIndexValid(index) ? (Text*)elements[index] : nullptr;
+}
+
+Text *Navigation::getSelectedText() {
+   return getText(index);
+}
+
 size_t Navigation::getSelectedIndex() {
    return index;
 }
