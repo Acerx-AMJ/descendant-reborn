@@ -118,3 +118,8 @@ struct TextInput: public UIElement {
 };
 
 void destroy(UIElement *element);
+
+// reusability module
+
+void drawPointer(Texture texture, Vector2 position, bool rotate);
+void drawTextButtonBackground(float width, Color color);

@@ -11,16 +11,16 @@ struct GameState: public State {
    void setup(const Level &level);
    void calculateCameraBounds();
 
-   void update() override;
-   void render() override;
-   void fixedUpdate() override;
    void updateResponsiveness() override;
    State *change() override;
 
+   void update() override;
+   void fixedUpdate() override;
    void updatePlayingState();
    void updatePausedState();
    void updateWonState();
 
+   void render() override;
    void renderPlayingState();
    void renderPausedState();
    void renderWonState();

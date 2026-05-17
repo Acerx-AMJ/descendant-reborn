@@ -6,17 +6,26 @@ struct MenuState: public State {
    MenuState();
    ~MenuState() = default;
 
-   void update() override;
-   void render() override;
-   void fixedUpdate() override;
    void updateResponsiveness() override;
    State *change() override;
 
+   void update() override;
+   void updateTitleState();
+   void updateGameModeSelectionState();
+
+   void render() override;
+   void renderTitleState();
+   void renderGameModeSelectionState();
+
 private:
 
-   enum class Phase {title, chapterSelection, levelSelection, play, editor, customize, quit};
+   enum class Phase {title, gameModeSelection};
    Phase phase = Phase::title;
 
-   Navigation titleButtons;
-   Text *playButton, *editorButton, *customizeButton, *optionsButton, *quitButton;
+   Navigation titleButtons, gameModeSelectionButtons;
+   Text *playButton, *editorButton, *customizeButton, *optionsButton, *quitButton, *storyButton,
+      *endlessButton, *freePlayButton, *backButton;
+
+   bool shouldPlayLevel = false;
+   bool shouldCustomize = false;
 };

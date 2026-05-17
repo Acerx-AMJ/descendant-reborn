@@ -6,11 +6,10 @@ struct LoadingState: public State {
    LoadingState();
    ~LoadingState() = default;
 
+   State *change() override;
+
    void update() override;
    void render() override;
-   void fixedUpdate() override;
-   void updateResponsiveness() override;
-   State *change() override;
 
 private:
 

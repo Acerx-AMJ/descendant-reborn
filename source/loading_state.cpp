@@ -6,13 +6,16 @@
 #include "render.hpp"
 #include "sound.hpp"
 
-
 LoadingState::LoadingState() {
    loadingText = "Loading Fonts... ";
    loadFont("slackey", "assets/fonts/slackey.ttf");
    loadTexture("loading", "assets/sprites/loading.png");
    splash = getRandomLineFromFile("data/splash.txt");
    splash = wrap(splash, getFont("slackey"), GetScreenWidth() - 50.0f * getWidthRatio(), getFontSize(50.0f), getFontSize(1.0f));
+}
+
+State *LoadingState::change() {
+   return new MenuState();
 }
 
 void LoadingState::update() {
@@ -63,16 +66,4 @@ void LoadingState::render() {
    drawTextCentered(font, getScreenCenterOffset({0.0f, getCubicRatio() * -175.0f}), finalLoadingText.c_str(), 80, WHITE);
    drawTextCentered(font, getScreenCenterOffset({0.0f, getCubicRatio() * 100.0f}), splash.c_str(), 40, WHITE);
    drawTextureCentered(icon, getScreenCenter(), cubicSize(70.0f), WHITE, iconRotation);
-}
-
-void LoadingState::fixedUpdate() {
-
-}
-
-void LoadingState::updateResponsiveness() {
-
-}
-
-State *LoadingState::change() {
-   return new MenuState();
 }

@@ -10,8 +10,8 @@ struct State {
 
    virtual void update() = 0;
    virtual void render() = 0;
-   virtual void fixedUpdate() = 0;
-   virtual void updateResponsiveness() = 0;
+   virtual void fixedUpdate() {};
+   virtual void updateResponsiveness() {};
    virtual State *change() = 0;
 
    void updateStateLogic();

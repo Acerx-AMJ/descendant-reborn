@@ -394,3 +394,13 @@ void destroy(UIElement *element) {
       delete element;
    }
 }
+
+// reusability module
+
+void drawPointer(Texture texture, Vector2 position, bool rotate) {
+   drawTextureCentered(texture, {getCubicRatio() * 62.5f, position.y}, cubicSize(65.0f + 10.0f * sin(GetTime() * 3.0f)), WHITE, (rotate ? GetTime() * 40.0f : 0.0f));
+}
+
+void drawTextButtonBackground(float width, Color color) {
+   DrawRectangleV({0.0f, 0.0f}, {width * getCubicRatio(), GetScreenHeight() * 1.0f}, Fade(color, 0.5f));
+}

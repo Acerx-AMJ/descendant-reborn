@@ -62,87 +62,6 @@ void GameState::calculateCameraBounds() {
    cameraBounds.height = fmin(map.sizeY - 1, int(pos.y + size.y));
 }
 
-void GameState::update() {
-   switch (state) {
-   case State::playing: updatePlayingState(); break;
-   case State::paused:  updatePausedState();  break;
-   case State::won:     updateWonState();     break;
-   }
-}
-
-void GameState::render() {
-   Shader shader = getShader("blur");
-   Vector2 size = getScreenSize();
-   float fade = pausedTimer * pausedTimer * (3.0f - 2.0f * pausedTimer);
-   bool paused = state != State::playing;
-
-   SetShaderValue(shader, viewPortSizeShaderLocation, &size, SHADER_UNIFORM_VEC2);
-   SetShaderValue(shader, fadeShaderLocation, &fade, SHADER_UNIFORM_FLOAT);
-
-   BeginTextureMode(pausedTexture);
-   ClearBackground(BLACK);
-   BeginMode2D(camera.camera);
-      map.render(player, cameraBounds, paused);
-   EndMode2D();
-   EndTextureMode();
-
-   BeginShaderMode(shader);
-      DrawTextureRec(pausedTexture.texture, {0, 0, (float)pausedTexture.texture.width, (float)-pausedTexture.texture.height}, {0.0f, 0.0f}, WHITE);
-   EndShaderMode();
-
-   BeginMode2D(cameraUI.camera);
-      switch (state) {
-      case State::playing: renderPlayingState(); break;
-      case State::paused:  renderPausedState();  break;
-      case State::won:     renderWonState();     break;
-      }
-
-      if (state == State::won) {
-         return;
-      }
-      Font font = getFont("slackey");
-      float cr = getCubicRatio();
-      float down = GetScreenHeight() - 50.0f * cr;
-
-      drawTextureAnimatedCentered(coinAnimation, {cr * 720.0f, down}, cubicSize(50.0f), WHITE, paused);
-      drawTextSemiCentered(font, {cr * 760.0f, down}, TextFormat("%lu/%lu", map.collectedCoins, map.coinCount), 35.0f, WHITE);
-
-      drawTextureAnimatedCentered(timerAnimation, {cr * 1300.0f, down}, cubicSize(50.0f), WHITE, paused || !startCountingTime);
-      drawTextSemiCentered(font, {cr * 1340.0f, down}, (startCountingTime ? TextFormat("%05.2f", gameTime) : "--.--"), 35.0f, WHITE);
-   EndMode2D();
-}
-
-void GameState::fixedUpdate() {
-   if (state != State::paused && state != State::won) {
-      player.update(map);
-
-      if (!startCountingTime && (player.direction.x != 0.0f || player.direction.y != 0.0f)) {
-         playSound("horn");
-         startCountingTime = true;
-      }
-
-      if (player.finished) {
-         playSound("win");
-         pausedTimer = 0.0f;
-         state = State::won;
-         camera.shake(30.0f, 0.5f);
-         cameraUI.shake(30.0f, 0.5f);
-
-         starCount += (map.coinCount <= map.collectedCoins);
-         starCount += (map.coinCount <= map.collectedCoins * 2);
-         starCount += (gameTime <= map.time);
-         previousTime = getLevelData(map.levelID).time;
-         saveLevelDataOnNewScore({map.coinCount <= map.collectedCoins, gameTime <= map.perfectTime
-            && starCount == 3, gameTime, camera.camera.zoom, starCount}, map.coinCount <= map.collectedCoins,
-            map.levelID);
-         wonNextText->disabled = (!getLevelData(map.levelID).completed && map.levelID != getLevelCount() - 1);
-      }
-   }
-   cameraUI.update();
-   camera.update();
-   calculateCameraBounds();
-}
-
 void GameState::updateResponsiveness() {
    float cr = getCubicRatio();
    pauseButton.position = {cr * 55.0f, GetScreenHeight() - cr * 55.0f};
@@ -177,6 +96,47 @@ State *GameState::change() {
       return game;
    }
    return nullptr;
+}
+
+// Update
+
+void GameState::update() {
+   switch (state) {
+   case State::playing: updatePlayingState(); break;
+   case State::paused:  updatePausedState();  break;
+   case State::won:     updateWonState();     break;
+   }
+}
+
+void GameState::fixedUpdate() {
+   if (state != State::paused && state != State::won) {
+      player.update(map);
+
+      if (!startCountingTime && (player.direction.x != 0.0f || player.direction.y != 0.0f)) {
+         playSound("horn");
+         startCountingTime = true;
+      }
+
+      if (player.finished) {
+         playSound("win");
+         pausedTimer = 0.0f;
+         state = State::won;
+         camera.shake(30.0f, 0.5f);
+         cameraUI.shake(30.0f, 0.5f);
+
+         starCount += (map.coinCount <= map.collectedCoins);
+         starCount += (map.coinCount <= map.collectedCoins * 2);
+         starCount += (gameTime <= map.time);
+         previousTime = getLevelData(map.levelID).time;
+         saveLevelDataOnNewScore({map.coinCount <= map.collectedCoins, gameTime <= map.perfectTime
+            && starCount == 3, gameTime, camera.camera.zoom, starCount}, map.coinCount <= map.collectedCoins,
+            map.levelID);
+         wonNextText->disabled = (!getLevelData(map.levelID).completed && map.levelID != getLevelCount() - 1);
+      }
+   }
+   cameraUI.update();
+   camera.update();
+   calculateCameraBounds();
 }
 
 void GameState::updatePlayingState() {
@@ -304,6 +264,50 @@ void GameState::updateWonState() {
    }
 }
 
+// Render
+
+void GameState::render() {
+   Shader shader = getShader("blur");
+   Vector2 size = getScreenSize();
+   float fade = pausedTimer * pausedTimer * (3.0f - 2.0f * pausedTimer);
+   bool paused = state != State::playing;
+
+   SetShaderValue(shader, viewPortSizeShaderLocation, &size, SHADER_UNIFORM_VEC2);
+   SetShaderValue(shader, fadeShaderLocation, &fade, SHADER_UNIFORM_FLOAT);
+
+   BeginTextureMode(pausedTexture);
+   ClearBackground(BLACK);
+   BeginMode2D(camera.camera);
+      map.render(player, cameraBounds, paused);
+   EndMode2D();
+   EndTextureMode();
+
+   BeginShaderMode(shader);
+      DrawTextureRec(pausedTexture.texture, {0, 0, (float)pausedTexture.texture.width, (float)-pausedTexture.texture.height}, {0.0f, 0.0f}, WHITE);
+   EndShaderMode();
+
+   BeginMode2D(cameraUI.camera);
+      switch (state) {
+      case State::playing: renderPlayingState(); break;
+      case State::paused:  renderPausedState();  break;
+      case State::won:     renderWonState();     break;
+      }
+
+      if (state == State::won) {
+         return;
+      }
+      Font font = getFont("slackey");
+      float cr = getCubicRatio();
+      float down = GetScreenHeight() - 50.0f * cr;
+
+      drawTextureAnimatedCentered(coinAnimation, {cr * 720.0f, down}, cubicSize(50.0f), WHITE, paused);
+      drawTextSemiCentered(font, {cr * 760.0f, down}, TextFormat("%lu/%lu", map.collectedCoins, map.coinCount), 35.0f, WHITE);
+
+      drawTextureAnimatedCentered(timerAnimation, {cr * 1300.0f, down}, cubicSize(50.0f), WHITE, paused || !startCountingTime);
+      drawTextSemiCentered(font, {cr * 1340.0f, down}, (startCountingTime ? TextFormat("%05.2f", gameTime) : "--.--"), 35.0f, WHITE);
+   EndMode2D();
+}
+
 void GameState::renderPlayingState() {
    pauseButton.render();
    restartButton.render();
@@ -313,13 +317,13 @@ void GameState::renderPausedState() {
    Font font = getFont("slackey");
    float cr = getCubicRatio();
 
-   DrawRectangleV({0.0f, 0.0f}, {500.0f * cr, GetScreenHeight() * 1.0f}, Fade(BLACK, 0.5f));
+   drawTextButtonBackground(500.0f, BLACK);
    drawTextSemiCentered(font, {cr * 100.0f, cr * 100.0f}, map.name.c_str(), 50.0f, WHITE);
    drawTextSemiCentered(font, {cr * 100.0f, cr * 150.0f}, map.chapter.c_str(), 35.0f, {200, 200, 200, 255});
    pauseNavig.render();
 
    if (pauseNavig.anySelected()) {
-      drawTextureCentered(getTexture("lotus"), {cr * 50.0f, pauseNavig.getSelectedElement()->position.y}, cubicSize(65.0f + 10.0f * sin(GetTime() * 3.0f)), WHITE, GetTime() * 40.0f);
+      drawPointer(getTexture("lotus"), pauseNavig.getSelectedElement()->position, true);
    }
 }
 
@@ -328,17 +332,17 @@ void GameState::renderWonState() {
    float cr = getCubicRatio();
 
    DrawRectangleV({0.0f, 0.0f}, getScreenSize(), Fade(BLACK, pausedTimer / 2.0f));
-   DrawRectangleV({0.0f, 0.0f}, {500.0f * cr, GetScreenHeight() * 1.0f}, Fade(BLACK, 0.5f));
+   drawTextButtonBackground(500.0f, BLACK);
    drawTextSemiCentered(font, {cr * 100.0f, cr * 100.0f}, "Level Beat!", 50.0f, WHITE);
    drawTextSemiCentered(font, {cr * 100.0f, cr * 150.0f}, ("Next: " + getLevel((map.levelID + 1) % getLevelCount()).name).c_str(), 35.0f, {200, 200, 200, 255});
    wonNavig.render();
 
    if (wonNavig.anySelected() && (!wonNextText->disabled || wonNavig.getSelectedText() != wonNextText)) {
-      drawTextureCentered(getTexture("lotus"), {cr * 50.0f, wonNavig.getSelectedElement()->position.y}, cubicSize(65.0f + 10.0f * sin(GetTime() * 3.0f)), WHITE, GetTime() * 40.0f);
+      drawPointer(getTexture("lotus"), wonNavig.getSelectedElement()->position, true);
    }
 
    if (wonNextText->disabled) {
-      drawTextureCentered(getTexture("lock"), {cr * 50.0f, wonNextText->position.y}, cubicSize(65.0f + 10.0f * sin(GetTime() * 3.0f)), WHITE);
+      drawPointer(getTexture("lock"), wonNextText->position, false);
 
       if (wonNextText->hovering) {
          Vector2 position = (wonNavig.getSelectedText() == wonNextText ? wonNextText->position : GetMousePosition());
