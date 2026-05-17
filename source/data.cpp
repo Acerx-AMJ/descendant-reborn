@@ -564,12 +564,13 @@ void saveLevelData(LevelData data, size_t ID) {
 
 void saveLevelDataOnNewScore(LevelData newData, bool gotAllCoins, size_t ID) {
    LevelData data, oldData = levelData[ID];
+   data.completed = gotAllCoins;
    data.perfect = oldData.perfect || newData.perfect;
-   data.time = fmin(oldData.time, newData.time);
+   data.time = (gotAllCoins ? fmin(oldData.time, newData.time) : oldData.time);
    data.zoom = newData.zoom;
    data.stars = fmax(oldData.stars, newData.stars);
 
-   if (oldData.perfect != data.perfect || (oldData.time != data.time && gotAllCoins) || oldData.stars != data.stars) {
+   if (oldData.perfect != data.perfect || oldData.time != data.time || oldData.stars != data.stars || (!oldData.completed && data.completed)) {
       saveLevelData(data, ID);
    }
 }

@@ -132,8 +132,10 @@ void GameState::fixedUpdate() {
          starCount += (map.coinCount <= map.collectedCoins * 2);
          starCount += (gameTime <= map.time);
          previousTime = getLevelData(map.levelID).time;
-         saveLevelDataOnNewScore({gameTime <= map.perfectTime && starCount == 3, gameTime, camera.camera.zoom, starCount}, map.coinCount <= map.collectedCoins, map.levelID);
-         wonNextText->disabled = (map.coinCount > map.collectedCoins);
+         saveLevelDataOnNewScore({map.coinCount <= map.collectedCoins, gameTime <= map.perfectTime
+            && starCount == 3, gameTime, camera.camera.zoom, starCount}, map.coinCount <= map.collectedCoins,
+            map.levelID);
+         wonNextText->disabled = (!getLevelData(map.levelID).completed && map.levelID != getLevelCount() - 1);
       }
    }
    cameraUI.update();
@@ -249,7 +251,8 @@ void GameState::updateWonState() {
          scale = 1.66f;
 
          bool isAStar = starsFilled < starCount;
-         starStatus[starsFilled] = isAStar;
+         bool isASilverStar = !isAStar && starsFilled < getLevelData(map.levelID).stars;
+         starStatus[starsFilled] = (isASilverStar ? 2 : isAStar);
          playSound(isAStar ? "hit" : "hit_small");
 
          if (starsFilled == 2) {
@@ -275,6 +278,9 @@ void GameState::updateWonState() {
             }
             else {
                finalResult = starCount;
+               if (finalResult == 0) {
+                  playSound("horrible");
+               }
             }
 
             resultColorScheme = getResultColorSchemeBasedOnPerformance(finalResult);
@@ -344,7 +350,7 @@ void GameState::renderWonState() {
 
    // draw the stars
    for (int i = 0; i < 3; ++i) {
-      Texture texture = getTexture(starStatus[i] == 1 ? "star" : "unknown");
+      Texture texture = getTexture(starStatus[i] == 2 ? "silver_star" : (starStatus[i] == 1 ? "star" : "unknown"));
       Vector2 position = V2(1200.0f, 300.0f) * cr; // star 1
       float rotation = -22.5f;
       

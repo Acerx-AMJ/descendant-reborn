@@ -42,8 +42,8 @@ void renderParticles(std::vector<Particle> &cluster) {
 }
 
 void spawnParticles(const Particle &minimum, const Particle &maximum, size_t count, size_t ID) {
-   std::vector<Particle> cluster;
-   cluster.reserve(count);
+   std::vector<Particle> &cluster = particles[ID];
+   cluster.reserve(cluster.size() + count);
 
    for (size_t i = 0; i < count; ++i) {
       Particle particle = {
@@ -61,7 +61,6 @@ void spawnParticles(const Particle &minimum, const Particle &maximum, size_t cou
       };
       cluster.push_back(particle);
    }
-   particles[ID] = cluster;
 }
 
 // presets

@@ -102,6 +102,7 @@ struct CustomizationData {
 };
 
 struct LevelData {
+   bool completed = false;
    bool perfect = false;
    float time = std::numeric_limits<float>::max();
    float zoom = 1.0f;
