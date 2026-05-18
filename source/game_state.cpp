@@ -157,7 +157,7 @@ void GameState::updatePlayingState() {
 
    if (pauseButton.clicked || handleKeyPressWithSound(KEY_ESCAPE)) {
       state = State::paused;
-      pauseNavig.resetIndex();
+      pauseNavig.index = 0;
    }
 
    if (restartButton.clicked || handleKeyPressWithSound(KEY_R)) {
@@ -349,7 +349,7 @@ void GameState::renderWonState() {
    drawTextSemiCentered(font, {cr * 100.0f, cr * 150.0f}, ("Next: " + getLevel((map.levelID + 1) % getLevelCount()).name).c_str(), 35.0f, {200, 200, 200, 255});
    wonNavig.render();
 
-   if (wonNavig.anySelected() && (!wonNextText->disabled || wonNavig.getSelectedText() != wonNextText)) {
+   if (wonNavig.anySelected() && (!wonNextText->disabled || wonNavig.getSelected<Text>() != wonNextText)) {
       drawPointer(getTexture("lotus"), wonNavig.getSelectedElement()->position, true);
    }
 
@@ -357,7 +357,7 @@ void GameState::renderWonState() {
       drawPointer(getTexture("lock"), wonNextText->position, false);
 
       if (wonNextText->hovering) {
-         Vector2 position = (wonNavig.getSelectedText() == wonNextText ? wonNextText->position : GetMousePosition());
+         Vector2 position = (wonNavig.getSelected<Text>() == wonNextText ? wonNextText->position : GetMousePosition());
          Vector2 size = getTextSize(font, "You must collect all coins\n to unlock the next level!", getFontSize(40.0f), getFontSize(1.0f));
          DrawRectanglePro(getRectangle(position, size), {0.0f, size.y / 2.0f}, 0.0f, Fade(BLACK, 0.75f));
          drawTextSemiCentered(font, position, "You must collect all coins\n to unlock the next level!", 40.0f, WHITE);

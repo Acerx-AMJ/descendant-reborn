@@ -1,127 +1,132 @@
 #include "navig.hpp"
-
-constexpr float holdDelay = 0.4f;
-constexpr float holdInterval = 0.1f;
+#include <cmath>
 
 Navigation::Navigation() {
-   elements.push_back(nullptr); // 0 is null element
+   up.key = KEY_UP;
+   left.key = KEY_LEFT;
+   right.key = KEY_RIGHT;
+   down.key = KEY_DOWN;
+   tab.key = KEY_TAB;
+
+   elements.push_back({}); // null
 }
 
 Navigation::~Navigation() {
-   for (size_t i = 1; i < elements.size(); ++i) {
-      destroy(elements[i]);
+   for (NavigElement &element: elements) {
+      if (element.element) {
+         destroy(element.element);
+      }
    }
 }
 
 void Navigation::update() {
-   size_t previous = index;
+   updateKey(up);
+   updateKey(left);
+   updateKey(right);
+   updateKey(down);
+   updateKey(tab);
 
-   shouldGoUp = IsKeyPressed(KEY_UP);
-   shouldGoDown = IsKeyPressed(KEY_DOWN);
-   shouldGoLeft = IsKeyPressed(KEY_LEFT);
-   shouldGoRight = IsKeyPressed(KEY_RIGHT);
-
-   if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT)) {
-      holdTimer += GetFrameTime();
-
-      if (!holding) {
-         holdTimer = 0.0f;
-         holding = true;
-      }
-      else if (holdTimer >= holdDelay) {
-         intervalTimer += GetFrameTime();
-
-         if (intervalTimer >= holdInterval) {
-            intervalTimer -= holdInterval;
-            if (IsKeyDown(KEY_UP)) shouldGoUp = true;
-            if (IsKeyDown(KEY_DOWN)) shouldGoDown = true;
-            if (IsKeyDown(KEY_LEFT)) shouldGoLeft = true;
-            if (IsKeyDown(KEY_RIGHT)) shouldGoRight = true;
-         }
-      }
-   }
-   else {
-      holding = false;
+   if (up.pressed && elements[index].up < elements.size()) {
+      index = elements[index].up;
    }
 
-   if (!manualNavigationHandling && (shouldGoUp || shouldGoLeft)) {
+   if (down.pressed && elements[index].down < elements.size()) {
+      index = elements[index].down;
+   }
+
+   if (left.pressed && elements[index].left < elements.size()) {
+      index = elements[index].left;
+   }
+
+   if (right.pressed && elements[index].right < elements.size()) {
+      index = elements[index].right;
+   }
+
+   if (tab.pressed && (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT))) {
       index = (index == 0 ? elements.size() - 1 : index - 1);
    }
 
-   if (!manualNavigationHandling && (shouldGoDown || shouldGoRight)) {
+   if (tab.pressed && !IsKeyDown(KEY_LEFT_SHIFT) && !IsKeyDown(KEY_RIGHT_SHIFT)) {
       index = (index + 1) % elements.size();
    }
 
-   changed = previous != index;
-   for (size_t i = 1; i < elements.size(); ++i) {
-      if (index != i) {
-         elements[i]->update();
+   for (size_t i = 0; i < elements.size(); ++i) {
+      if (!elements[i].element) {
          continue;
       }
 
-      elements[i]->update(true, IsKeyDown(KEY_ENTER), IsKeyPressed(KEY_ENTER));
+      if (index != i) {
+         elements[i].element->update();
+         continue;
+      }
+
+      elements[i].element->update(true, IsKeyDown(KEY_ENTER), IsKeyPressed(KEY_ENTER));
+   }
+}
+
+void Navigation::updateKey(KeyState &key) {
+   key.pressed = IsKeyPressed(key.key);
+
+   if (IsKeyDown(key.key)) {
+      if (!key.holding) {
+         key.intervalTimer = 0.0f;
+         key.holdTimer = 0.0f;
+         key.holding = true;
+      }
+
+      key.holdTimer += GetFrameTime();
+      if (key.holdTimer >= holdDelay) {
+         key.intervalTimer += GetFrameTime();
+      }
+
+      if (key.intervalTimer >= holdInterval) {
+         key.intervalTimer -= holdInterval;
+         key.pressed = true;
+      }
+   }
+   else {
+      key.holding = false;
    }
 }
 
 void Navigation::render() {
-   for (size_t i = 1; i < elements.size(); ++i) {
-      elements[i]->render();
+   for (NavigElement &element: elements) {
+      if (element.element) {
+         element.element->render();
+      }
    }
 }
 
-void Navigation::setIndex(size_t index) {
-   this->index = index;
-}
-
-void Navigation::resetIndex() {
-   index = 0;
-}
-
-void Navigation::addElement(UIElement *element) {
-   elements.push_back(element);
+void Navigation::addElement(UIElement *element, size_t up, size_t left, size_t right, size_t down) {
+   NavigElement instance = {element->copy(), up, left, right, down};
+   elements.push_back(instance);
 }
 
 void Navigation::addElements(const std::vector<UIElement*> &elements) {
-   this->elements.reserve(this->elements.size() + elements.size());
-   for (UIElement *element: elements) {
-      this->elements.push_back(element);
+   this->elements.reserve(elements.size() + 1);
+
+   for (size_t i = 0; i < elements.size(); ++i) {
+      NavigElement instance = {elements[i]->copy(), i, invalidNavigIndex, invalidNavigIndex, (i + 2) % (elements.size() + 1)};
+      this->elements.push_back(instance);
    }
+   setNoSelectionNavig(this->elements.size() - 1, fmin(1, this->elements.size()));
+}
+
+void Navigation::setNoSelectionNavig(size_t up, size_t down) {
+   elements[0].up = up;
+   elements[0].down = down;
+}
+
+void Navigation::setNoSelectionNavigDefault(size_t def) {
+   elements[0].up = elements[0].down = elements[0].left = elements[0].right = def;
 }
 
 UIElement *Navigation::getElement(size_t index) {
-   return isIndexValid(index) ? elements[index] : nullptr;
+   return isIndexValid(index) ? elements[index].element : nullptr;
 }
 
 UIElement *Navigation::getSelectedElement() {
    return getElement(index);
-}
-
-Button *Navigation::getButton(size_t index) {
-   return isIndexValid(index) ? (Button*)elements[index] : nullptr;
-}
-
-Button *Navigation::getSelectedButton() {
-   return getButton(index);
-}
-
-TextureRect *Navigation::getTextureRect(size_t index) {
-   return isIndexValid(index) ? (TextureRect*)elements[index] : nullptr;
-}
-
-TextureRect *Navigation::getSelectedTextureRect() {
-   return getTextureRect(index);
-}
-
-Text *Navigation::getText(size_t index) {
-   return isIndexValid(index) ? (Text*)elements[index] : nullptr;
-}
-
-Text *Navigation::getSelectedText() {
-   return getText(index);
-}
-
-size_t Navigation::getSelectedIndex() {
-   return index;
 }
 
 bool Navigation::isIndexValid(size_t index) {
@@ -130,20 +135,4 @@ bool Navigation::isIndexValid(size_t index) {
 
 bool Navigation::anySelected() {
    return isIndexValid(index);
-}
-
-bool Navigation::selectionChanged() {
-   return changed;
-}
-
-bool Navigation::isSelectedClicked() {
-   return anySelected() && getSelectedElement()->clicked;
-}
-
-bool Navigation::isSelectedDown() {
-   return anySelected() && getSelectedElement()->down;
-}
-
-bool Navigation::isSelectedHoveredOn() {
-   return anySelected() && getSelectedElement()->hovering;
 }

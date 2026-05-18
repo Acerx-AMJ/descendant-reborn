@@ -2,6 +2,7 @@
 #include "asset.hpp"
 #include "data.hpp"
 #include "input.hpp"
+#include "math.hpp"
 #include "menu_state.hpp"
 #include <raymath.h>
 
@@ -30,27 +31,113 @@ CustomizeState::CustomizeState() {
    prevPageButton = Button::make(getTexture("pointer_left"), {40.0f, 40.0f});
    nextPageButton = Button::make(getTexture("pointer_right"), {40.0f, 40.0f});
 
-   skinButtons.addElements({backButton->copy(), skinTab->copy(), primaryTab->copy(), secondaryTab->copy(),
-      visibleButton->copy(), diceButton->copy(), shadowButton->copy(), prevPageButton, nextPageButton->copy()});
-   colorButtons.addElements({backButton->copy(), skinTab->copy(), primaryTab->copy(), secondaryTab->copy(),
-      visibleButton->copy(), diceButton->copy(), shadowButton->copy(), prevPageButton->copy(), nextPageButton});
-   noTabButtons.addElements({backButton, skinTab, primaryTab, secondaryTab, visibleButton, diceButton, shadowButton});
-   hiddenButtons.addElements({hiddenButton});
+   // skin buttons
+   // up, left, right, down
+   float bottomLeftIcons = fmin(extraButtons + getPlayerIconCount(), extraButtons + (entriesPerColumn * (entryColumns - 1)));
 
-   for (const std::string &icon: getPlayerIconContainer()) {
-      TextureRect *rect = TextureRect::make(getTexture(icon), {70.0f, 70.0f});
-      skinButtons.addElement(rect);
+   /* 1*/ skinButtons.addElement(backButton, 0, 0, 2, extraButtons);
+   /* 2*/ skinButtons.addElement(skinTab, 0, 1, 3, extraButtons);
+   /* 3*/ skinButtons.addElement(primaryTab, 0, 2, 4, extraButtons);
+   /* 4*/ skinButtons.addElement(secondaryTab, 0, 3, 0, extraButtons);
+   /* 5*/ skinButtons.addElement(visibleButton, bottomLeftIcons, 0, 6, 0);
+   /* 6*/ skinButtons.addElement(diceButton, bottomLeftIcons, 5, 7, 0);
+   /* 7*/ skinButtons.addElement(shadowButton, bottomLeftIcons, 6, 8, 0);
+   /* 8*/ skinButtons.addElement(prevPageButton, bottomLeftIcons, 7, 9, 0);
+   /* 9*/ skinButtons.addElement(nextPageButton, bottomLeftIcons, 8, 0, 0);
+   skinButtons.setNoSelectionNavigDefault(1);
+
+   // color buttons
+   float bottomLeftColors = fmin(extraButtons + getPlayerColorCount(), extraButtons + (entriesPerColumn * (entryColumns - 1)));
+
+   /* 1*/ colorButtons.addElement(backButton, 0, 0, 2, extraButtons);
+   /* 2*/ colorButtons.addElement(skinTab, 0, 1, 3, extraButtons);
+   /* 3*/ colorButtons.addElement(primaryTab, 0, 2, 4, extraButtons);
+   /* 4*/ colorButtons.addElement(secondaryTab, 0, 3, 0, extraButtons);
+   /* 5*/ colorButtons.addElement(visibleButton, bottomLeftColors, 0, 6, 0);
+   /* 6*/ colorButtons.addElement(diceButton, bottomLeftColors, 5, 7, 0);
+   /* 7*/ colorButtons.addElement(shadowButton, bottomLeftColors, 6, 8, 0);
+   /* 8*/ colorButtons.addElement(prevPageButton, bottomLeftColors, 7, 9, 0);
+   /* 9*/ colorButtons.addElement(nextPageButton, bottomLeftColors, 8, 0, 0);
+   colorButtons.setNoSelectionNavigDefault(1);
+
+   // no tab buttons
+   /* 1*/ noTabButtons.addElement(backButton, 0, 0, 2, 5);
+   /* 2*/ noTabButtons.addElement(skinTab, 0, 1, 3, 5);
+   /* 3*/ noTabButtons.addElement(primaryTab, 0, 2, 4, 5);
+   /* 4*/ noTabButtons.addElement(secondaryTab, 0, 3, 0, 5);
+   /* 5*/ noTabButtons.addElement(visibleButton, 1, 0, 6, 0);
+   /* 6*/ noTabButtons.addElement(diceButton, 1, 5, 7, 0);
+   /* 7*/ noTabButtons.addElement(shadowButton, 1, 6, 0, 0);
+   noTabButtons.setNoSelectionNavigDefault(1);
+
+   // hidden buttons
+   /* 1*/ hiddenButtons.addElement(hiddenButton, 0, 0, 0, 0);
+   hiddenButtons.setNoSelectionNavigDefault(1);
+
+   std::vector<std::string> &iconContainer = getPlayerIconContainer();
+   for (size_t i = 0; i < iconContainer.size(); ++i) {
+      TextureRect *rect = TextureRect::make(getTexture(iconContainer[i]), {70.0f, 70.0f});
+      size_t inav = i + extraButtons;
+      size_t row = (i % entriesPerPage) / entriesPerColumn;
+      size_t up = (row == 0 ? 1 : inav - entriesPerColumn);
+
+      size_t left = inav;
+      if (i % entriesPerColumn == 0 && i < entriesPerPage) {
+         left = extraButtons + 1;
+      }
+      else if (i % entriesPerColumn == 0) {
+         left = inav - entriesPerPage + entriesPerColumn;
+      }
+      left -= 1;
+   
+      size_t right = inav;
+      if ((i + 1) % entriesPerColumn == 0) {
+         right = inav + entriesPerPage - entriesPerColumn;
+      }
+      right = std::min(right + 1, extraButtons + iconContainer.size() - 1);
+      
+      size_t down = inav;
+      if (row == entryColumns - 1 || i + entriesPerColumn >= iconContainer.size()) {
+         down = 5;
+      }
+      else {
+         down = inav + entriesPerColumn;
+      }
+      skinButtons.addElement(rect, up, left, right, down);
    }
 
-   for (const Vector3 &color: getPlayerColorContainer()) {
-      Color translated {
-         static_cast<unsigned char>(color.x * 255.0f),
-         static_cast<unsigned char>(color.y * 255.0f),
-         static_cast<unsigned char>(color.z * 255.0f),
-         255
-      };
-      TextureRect *rect = TextureRect::make(translated, {70.0f, 70.0f});
-      colorButtons.addElement(rect);
+   std::vector<Vector3> &colorContainer = getPlayerColorContainer();
+   for (size_t i = 0; i < colorContainer.size(); ++i) {
+      Vector3 translated = colorContainer[i] * 255.0f;
+      Color final = C4(translated.x, translated.y, translated.z, 255);
+      TextureRect *rect = TextureRect::make(final, {70.0f, 70.0f});
+      size_t inav = i + extraButtons;
+      size_t row = (i % entriesPerPage) / entriesPerColumn;
+      size_t up = (row == 0 ? 1 : inav - entriesPerColumn);
+
+      size_t left = inav;
+      if (i % entriesPerColumn == 0 && i < entriesPerPage) {
+         left = extraButtons + 1;
+      }
+      else if (i % entriesPerColumn == 0) {
+         left = inav - entriesPerPage + entriesPerColumn;
+      }
+      left -= 1;
+   
+      size_t right = inav;
+      if ((i + 1) % entriesPerColumn == 0) {
+         right = inav + entriesPerPage - entriesPerColumn;
+      }
+      right = std::min(right + 1, extraButtons + colorContainer.size() - 1);
+      
+      size_t down = inav;
+      if (row == entryColumns - 1 || i + entriesPerColumn >= colorContainer.size()) {
+         down = 5;
+      }
+      else {
+         down = inav + entriesPerColumn;
+      }
+      colorButtons.addElement(rect, up, left, right, down);
    }
 
    updateResponsiveness();
@@ -85,8 +172,8 @@ void CustomizeState::update() {
       player.primaryColorID = rand() % getPlayerColorCount();
       player.secondaryColorID = rand() % getPlayerColorCount();
 
-      skinButtons.setIndex(extraButtons + player.iconID);
-      colorButtons.setIndex(extraButtons + (tab == Tab::primary ? player.primaryColorID : player.secondaryColorID));
+      skinButtons.index = extraButtons + player.iconID;
+      colorButtons.index = extraButtons + (tab == Tab::primary ? player.primaryColorID : player.secondaryColorID);
    }
 
    if (shadowButton->clicked || handleKeyPressWithSound(KEY_V)) {
@@ -99,9 +186,9 @@ void CustomizeState::update() {
 
       if (hiddenButton->clicked || handleKeyPressWithSound(KEY_H)) {
          // 5 is visible button
-         skinButtons.setIndex(5);
-         colorButtons.setIndex(5);
-         noTabButtons.setIndex(5);
+         skinButtons.index = 5;
+         colorButtons.index = 5;
+         noTabButtons.index = 5;
          visibleButton->texture = getTexture("visible");
          visible = true;
       }
@@ -109,7 +196,7 @@ void CustomizeState::update() {
    }
 
    if (visibleButton->clicked || handleKeyPressWithSound(KEY_H)) {
-      hiddenButtons.setIndex(1);
+      hiddenButtons.index = 1;
       visibleButton->texture = getTexture("hidden");
       visible = false;
    }
@@ -164,15 +251,15 @@ void CustomizeState::update() {
    }
 
    if (lastTab != tab && tab == Tab::skin) {
-      skinButtons.setIndex(extraButtons + player.iconID);
+      skinButtons.index = extraButtons + player.iconID;
    }
 
    if (lastTab != tab && tab == Tab::primary) {
-      colorButtons.setIndex(extraButtons + player.primaryColorID);
+      colorButtons.index = extraButtons + player.primaryColorID;
    }
 
    if (lastTab != tab && tab == Tab::secondary) {
-      colorButtons.setIndex(extraButtons + player.secondaryColorID);
+      colorButtons.index = extraButtons + player.secondaryColorID;
    }
 
    // Update pages
@@ -204,8 +291,6 @@ void CustomizeState::update() {
 }
 
 void CustomizeState::updateButtons(Navigation &navig, size_t page, size_t &ID) {
-   navig.manualNavigationHandling = navig.index >= extraButtons;
-   
    size_t max = std::min(navig.elements.size(), extraButtons + entriesPerPage * (page + 1));
    float offsetX = GetScreenWidth() * page;
 
@@ -215,52 +300,13 @@ void CustomizeState::updateButtons(Navigation &navig, size_t page, size_t &ID) {
 
    navig.update();
 
-   size_t index = navig.index - extraButtons;
-   if (navig.manualNavigationHandling) {
-      // don't touch this masterpiece, it works
-      if (navig.shouldGoLeft) {
-         if (index % entriesPerColumn == 0 && index < entriesPerPage) {
-            navig.index = extraButtons;
-         }
-         else if (index % entriesPerColumn == 0) {
-            navig.index = navig.index - entriesPerPage + entriesPerColumn;
-         }
-
-         navig.index -= 1;
-      }
-      else if (navig.shouldGoRight) {
-         if ((index + 1) % entriesPerColumn == 0) {
-            navig.index = navig.index + entriesPerPage - entriesPerColumn;
-         }
-         navig.index = std::min(navig.index + 1, navig.elements.size() - 1);
-      }
-      else if (navig.shouldGoDown) {
-         size_t row = (index % entriesPerPage) / entriesPerColumn;
-         if (row == entryColumns - 1 || navig.index + entriesPerColumn >= navig.elements.size()) {
-            navig.index = 5; // visible/hidden button
-         }
-         else {
-            navig.index += entriesPerColumn;
-         }
-      }
-      else if (navig.shouldGoUp) {
-         size_t row = (index % entriesPerPage) / entriesPerColumn;
-         if (row == 0) {
-            navig.index = 1; // back button
-         }
-         else {
-            navig.index -= entriesPerColumn;
-         }
-      }
-   }
-
    for (size_t i = extraButtons + entriesPerPage * page; i < max; ++i) {
-      TextureRect *rect = navig.getTextureRect(i);
+      TextureRect *rect = navig.get<TextureRect>(i);
       rect->position.x += offsetX;
 
       if (rect->clicked) {
          ID = rect->ID;
-         navig.setIndex(i);
+         navig.index = i;
       }
    }
 }
@@ -335,17 +381,14 @@ void CustomizeState::render() {
    }
 
    if (tab == Tab::skin && skinButtons.index >= extraButtons) {
-      TextureRect *selected = skinButtons.getSelectedTextureRect();
-      // 64/y = 68/x; x = 68y/64; x = 1.0625y
-      // where 64 is the default texture size and 68 is the texture size of the button pointer,
-      // and where y is the size of the button, and x is the size of the pointer
+      TextureRect *selected = skinButtons.getSelected<TextureRect>();
       float offsetX = GetScreenWidth() * skinPage;
       float scale = getCubicRatio() * selected->scale * 1.0625f;
       drawTextureCentered(smallPointerTexture, {selected->position.x - offsetX, selected->position.y}, Vector2Scale(selected->size, scale), WHITE);
    }
 
    if ((tab == Tab::primary || tab == Tab::secondary) && colorButtons.index >= extraButtons) {
-      TextureRect *selected = colorButtons.getSelectedTextureRect();
+      TextureRect *selected = colorButtons.getSelected<TextureRect>();
       float offsetX = GetScreenWidth() * colorPage;
       float scale = getCubicRatio() * selected->scale * 1.0625f;
       drawTextureCentered(smallPointerTexture, {selected->position.x - offsetX, selected->position.y}, Vector2Scale(selected->size, scale), WHITE);
@@ -401,7 +444,7 @@ void CustomizeState::updateResponsiveness() {
    float positionY = startY;
 
    for (size_t i = extraButtons; i < skinButtons.elements.size(); ++i) {
-      TextureRect *button = skinButtons.getTextureRect(i);
+      TextureRect *button = skinButtons.get<TextureRect>(i);
       button->ID = i - extraButtons;
       button->position = {positionX, positionY};
       button->size = {singleEntrySizeTranslated, singleEntrySizeTranslated};
@@ -426,7 +469,7 @@ void CustomizeState::updateResponsiveness() {
    positionY = startY;
 
    for (size_t i = extraButtons; i < colorButtons.elements.size(); ++i) {
-      TextureRect *button = colorButtons.getTextureRect(i);
+      TextureRect *button = colorButtons.get<TextureRect>(i);
       button->ID = i - extraButtons;
       button->position = {positionX, positionY};
       button->size = {singleEntrySizeTranslated, singleEntrySizeTranslated};

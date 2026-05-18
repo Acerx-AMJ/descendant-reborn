@@ -46,7 +46,7 @@ struct UIElement {
    Vector2 size;
 
    size_t ID = 0;
-   size_t refCount = 1;
+   size_t refCount = 0;
 
    float scale = 1.0f;
    float scaleMin = 0.97f;
