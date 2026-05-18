@@ -361,8 +361,10 @@ void CustomizeState::render() {
 }
 
 void CustomizeState::fixedUpdate() {
-   player.update();
-   camera.update();
+   if (!fadingOut) {
+      player.update();
+      camera.update();
+   }
 }
 
 void CustomizeState::updateResponsiveness() {

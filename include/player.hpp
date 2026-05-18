@@ -3,15 +3,14 @@
 #include <array>
 #include <raylib.h>
 
-struct Map;
-
 static inline constexpr std::size_t shadowCount = 3;
 static inline constexpr Vector2 playerSize = {50.0f, 50.0f};
+static inline constexpr float deadlyTilePadding = 3.0f;
 
 struct Player {
    void init(Rectangle bounds, CustomizationData data);
    void update(); // to be called in 'fixedUpdate'
-   void update(Map &map); // to be called in 'fixedUpdate'
+   void update(struct Map &map); // to be called in 'fixedUpdate'
    void render();
 
    // Members
@@ -36,6 +35,7 @@ struct Player {
    bool shadowsEnabled = true;
    bool blockMovement = false;
    bool finished = false;
+   bool died = false;
 
    int primaryShaderLocation = 0;
    int secondaryShaderLocation = 0;

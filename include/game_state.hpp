@@ -58,6 +58,7 @@ private:
    float resultColorFade = 0.0f;
    float resultScale = 1.0f;
    bool evaluatedResult = false;
+   bool playerKilled = false;
    
    int starCount = 0;
    int starsFilled = 0;

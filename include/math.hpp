@@ -31,6 +31,14 @@ inline float randomFloat(float min, float max) {
    return min + (float)rand() / float(RAND_MAX / (max - min));
 }
 
+inline Vector2 randomV2(Vector2 min, Vector2 max) {
+   return {randomFloat(min.x, max.x), randomFloat(min.y, max.y)};
+}
+
+inline Vector2 randomV2(float min, float max) {
+   return V2(randomFloat(min, max));
+}
+
 inline bool chance(int percent) {
    return randomInt(1, 100) <= percent;
 }

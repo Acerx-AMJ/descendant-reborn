@@ -22,13 +22,14 @@ void State::updateStateLogic() {
       updateFadingOut();
    }
    else {
-      accumulator += fminf(maxDeltaTime, GetFrameTime());
-      while (accumulator >= fixedUpdateDeltaTime) {
-         updateParticles();
-         fixedUpdate();
-         accumulator -= fixedUpdateDeltaTime;
-      }
       update();
+   }
+
+   accumulator += fminf(maxDeltaTime, GetFrameTime());
+   while (accumulator >= fixedUpdateDeltaTime) {
+      fixedUpdate();
+      updateParticles();
+      accumulator -= fixedUpdateDeltaTime;
    }
 }
 

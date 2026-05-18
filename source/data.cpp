@@ -215,14 +215,13 @@ void loadTiles() {
          getFieldAsSimpleValue(stream, value, line, tile.height);
       }
       else if (field == "type") {
-         if (value == "solid") {
-            tile.type = Tile::Type::solid;
-         }
-         else if (value == "coin") {
-            tile.type = Tile::Type::coin;
-         }
-         else if (value == "finish") {
-            tile.type = Tile::Type::finish;
+         const static std::unordered_map<std::string, Tile::Type> tileTypes {{
+            {"solid", Tile::Type::solid}, {"coin", Tile::Type::coin}, {"finish", Tile::Type::finish},
+            {"deadly", Tile::Type::deadly}
+         }};
+
+         if (tileTypes.count(value)) {
+            tile.type = tileTypes.at(value);
          }
          else {
             printf("WARNING: Malformed line: '%s'. Invalid type '%s'.\n", line.c_str(), value.c_str());
@@ -576,11 +575,11 @@ void saveLevelDataOnNewScore(LevelData newData, bool gotAllCoins, size_t ID) {
 }
 
 void saveLevelZoom(size_t ID, float zoom) {
-   LevelData oldData = levelData[ID];
-   if (oldData.zoom != zoom) {
-      oldData.zoom = zoom;
-      saveLevelData(oldData, ID);
-   }
+   levelData[ID].zoom = zoom;
+}
+
+void incrementLevelDeathCount(size_t ID) {
+   levelData[ID].deaths += 1;
 }
 
 void loadPlayerData() {

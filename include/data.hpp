@@ -40,7 +40,7 @@ struct Animation {
 
 struct Tile {
    enum class TileType: char {root, ghost, none};
-   enum class Type: char {solid, coin, finish};
+   enum class Type: char {solid, coin, finish, deadly};
 
    TileType tileType = TileType::none;
    Type type = Type::solid;
@@ -107,6 +107,7 @@ struct LevelData {
    float time = std::numeric_limits<float>::max();
    float zoom = 1.0f;
    int stars = 0;
+   int deaths = 0;
 };
 
 CustomizationData getCustomizationData();
@@ -118,6 +119,7 @@ LevelData loadLevelData(size_t ID);
 void saveLevelData(LevelData data, size_t ID);
 void saveLevelDataOnNewScore(LevelData newData, bool gotAllCoins, size_t ID);
 void saveLevelZoom(size_t ID, float zoom);
+void incrementLevelDeathCount(size_t ID);
 
 void loadPlayerData();
 void savePlayerData();

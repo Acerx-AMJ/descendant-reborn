@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <vector>
 
-static constexpr size_t particlePresetCount = 3;
+static constexpr size_t particlePresetCount = 4;
 static std::vector<std::vector<Particle>> particles (particlePresetCount);
 
 void updateParticles() {
@@ -48,10 +48,10 @@ void spawnParticles(const Particle &minimum, const Particle &maximum, size_t cou
    for (size_t i = 0; i < count; ++i) {
       Particle particle = {
          minimum.texture,
-         {randomFloat(minimum.position.x, maximum.position.x), randomFloat(minimum.position.y, maximum.position.y)},
-         {randomFloat(minimum.velocity.x, maximum.velocity.x), randomFloat(minimum.velocity.y, maximum.velocity.y)},
-         {randomFloat(minimum.acceleration.x, maximum.acceleration.x), randomFloat(minimum.acceleration.y, maximum.acceleration.y)},
-         {randomFloat(minimum.size.x, maximum.size.x), randomFloat(minimum.size.y, maximum.size.y)},
+         randomV2(minimum.position, maximum.position),
+         randomV2(minimum.velocity, maximum.velocity),
+         randomV2(minimum.acceleration, maximum.acceleration),
+         randomV2(minimum.size.x, maximum.size.x),
          randomFloat(minimum.sizeVelocity, maximum.sizeVelocity),
          randomFloat(minimum.rotation, maximum.rotation),
          randomFloat(minimum.rotationVelocity, maximum.rotationVelocity),
@@ -68,20 +68,20 @@ void spawnParticles(const Particle &minimum, const Particle &maximum, size_t cou
 void spawnCoinParticles(const Vector2 &position, Texture *texture) {
    spawnParticles({
       texture,
-      position - V2(1.0f) * getCubicRatio(),
-      {-200.0f, -200.0f},
-      {0.0f, 500.0f},
-      {12.5f, 12.5f},
+      position - V2(5.0f) * getCubicRatio(),
+      V2(-200.0f),
+      V2(0.0f, 500.0f),
+      V2(15.0f),
       0.95f,
       0.0f,
       -180.0f,
       0.6f
    }, {
       texture,
-      position + V2(1.0f) * getCubicRatio(),
-      {200.0f, 200.0f},
-      {0.0f, 1000.0f},
-      {17.5f, 17.5f},
+      position + V2(5.0f) * getCubicRatio(),
+      V2(200.0f),
+      V2(0.0f, 1000.0f),
+      V2(20.0f),
       1.05f,
       360.0f,
       180.0f,
@@ -93,9 +93,9 @@ void spawnStarParticles(const Vector2 &position) {
    spawnParticles({
       &getTexture("star"),
       position - V2(25.0f) * getCubicRatio(),
-      {-500.0f, -500.0f},
-      {0.0f, 500.0f},
-      {25.0f, 25.0f},
+      V2(-500.0f),
+      V2(0.0f, 500.0f),
+      V2(25.0f),
       0.92f,
       0.0f,
       -180.0f,
@@ -103,9 +103,9 @@ void spawnStarParticles(const Vector2 &position) {
    }, {
       &getTexture("star"),
       position + V2(25.0f) * getCubicRatio(),
-      {500.0f, 500.0f},
-      {0.0f, 1000.0f},
-      {35.0f, 35.0f},
+      V2(500.0f),
+      V2(0.0f, 1000.0f),
+      V2(35.0f),
       0.98f,
       360.0f,
       180.0f,
@@ -116,25 +116,49 @@ void spawnStarParticles(const Vector2 &position) {
 void spawnConfetti() {
    spawnParticles({
       nullptr,
-      {0.0f, -400.0f * getCubicRatio()},
-      {-400.0f, -400.0f},
-      {0.0f, 200.0f},
-      {12.0f, 12.0f},
+      V2(0.0f, -400.0f * getCubicRatio()),
+      V2(-400.0f),
+      V2(0.0f, 200.0f),
+      V2(12.0f),
       0.92f,
       0.0f,
       -180.0f,
       6.0f,
    }, {
       nullptr,
-      {(float)GetScreenWidth(), 0.0f},
-      {400.0f, 400.0f},
-      {0.0f, 400.0f},
-      {24.0f, 24.0f},
+      V2((float)GetScreenWidth(), 0.0f),
+      V2(400.0f),
+      V2(0.0f, 400.0f),
+      V2(24.0f),
       0.98f,
       360.0f,
       180.0f,
       8.0f,
    }, 250, 2);
+}
+
+void spawnPlayerDeathParticles(const Vector2 &position, Texture *texture) {
+   spawnParticles({
+      texture,
+      position - V2(5.0f) * getCubicRatio(),
+      V2(-300.0f),
+      V2(0.0f, 500.0f),
+      V2(15.0f),
+      0.92f,
+      0.0f,
+      -180.0f,
+      0.5f,
+   }, {
+      texture,
+      position + V2(5.0f) * getCubicRatio(),
+      V2(300.0f),
+      V2(0.0f, 1000.0f),
+      V2(20.0f),
+      0.98f,
+      360.0f,
+      180.0f,
+      0.7f
+   }, 16, 3);
 }
 
 std::vector<Particle> &getCoinParticleCluster() {
@@ -147,4 +171,8 @@ std::vector<Particle> &getStarParticleCluster() {
 
 std::vector<Particle> &getConfettiCluster() {
    return particles[2];
+}
+
+std::vector<Particle> &getPlayerDeathParticleCluster() {
+   return particles[3];
 }

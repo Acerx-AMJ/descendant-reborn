@@ -3,6 +3,7 @@
 #include "data.hpp"
 #include "map.hpp"
 #include "math.hpp"
+#include "particles.hpp"
 #include "render.hpp"
 #include <raylib.h>
 #include <raymath.h>
@@ -43,7 +44,7 @@ void Player::update() {
    float directionY = IsKeyDown(KEY_S) - IsKeyDown(KEY_W);
    direction = Vector2Normalize({directionX, directionY});
 
-   if ((direction.x == 0.0f && direction.y == 0.0f) || !playerInitialized || blockMovement) {
+   if ((direction.x == 0.0f && direction.y == 0.0f) || !playerInitialized || blockMovement || died) {
       return;
    }
 
@@ -63,7 +64,7 @@ void Player::update(Map &map) {
    float directionY = IsKeyDown(KEY_S) - IsKeyDown(KEY_W);
    direction = Vector2Normalize({directionX, directionY});
 
-   if (!playerInitialized || blockMovement) {
+   if (!playerInitialized || blockMovement || died) {
       return;
    }
 
@@ -93,6 +94,13 @@ void Player::update(Map &map) {
             }
 
             Rectangle tileBounds = getRectangle(pos * tileSize, size * tileSize);
+            if (tile.type == Tile::Type::deadly) {
+               tileBounds.x += deadlyTilePadding;
+               tileBounds.y += deadlyTilePadding;
+               tileBounds.width  -= deadlyTilePadding * 2;
+               tileBounds.height -= deadlyTilePadding * 2;
+            }
+
             if (!CheckCollisionRecs(playerBounds, tileBounds)) {
                continue;
             }
@@ -109,6 +117,11 @@ void Player::update(Map &map) {
 
             if (tile.type == Tile::Type::solid) {
                playerBounds.x = (tileBounds.x > playerBounds.x ? tileBounds.x - playerBounds.width : tileBounds.x + tileBounds.width);
+            }
+
+            if (tile.type == Tile::Type::deadly) {
+               died = true;
+               return;
             }
          }
       }
@@ -141,6 +154,13 @@ void Player::update(Map &map) {
             }
 
             Rectangle tileBounds = getRectangle(pos * tileSize, size * tileSize);
+            if (tile.type == Tile::Type::deadly) {
+               tileBounds.x += deadlyTilePadding;
+               tileBounds.y += deadlyTilePadding;
+               tileBounds.width  -= deadlyTilePadding * 2;
+               tileBounds.height -= deadlyTilePadding * 2;
+            }
+
             if (!CheckCollisionRecs(playerBounds, tileBounds)) {
                continue;
             }
@@ -157,6 +177,11 @@ void Player::update(Map &map) {
 
             if (tile.type == Tile::Type::solid) {
                playerBounds.y = (tileBounds.y > playerBounds.y ? tileBounds.y - playerBounds.height : tileBounds.y + tileBounds.height);
+            }
+
+            if (tile.type == Tile::Type::deadly) {
+               died = true;
+               return;
             }
          }
       }
@@ -178,10 +203,14 @@ void Player::render() {
    SetShaderValue(shader, secondaryShaderLocation, &secondary, SHADER_UNIFORM_VEC3);
 
    BeginShaderMode(shader);
-      for (int i = shadowCount - 1; shadowsEnabled && i >= 0; --i) {
-         drawTextureCentered(texture, shadows[i].position, shadows[i].size, Fade(WHITE, shadows[i].alpha));
+      if (died) {
+         renderParticles(getPlayerDeathParticleCluster());
       }
-
-      drawTextureCentered(texture, position, playerSize, WHITE);
+      else {
+         for (int i = shadowCount - 1; shadowsEnabled && i >= 0; --i) {
+            drawTextureCentered(texture, shadows[i].position, shadows[i].size, Fade(WHITE, shadows[i].alpha));
+         }
+         drawTextureCentered(texture, position, playerSize, WHITE);
+      }
    EndShaderMode();
 }

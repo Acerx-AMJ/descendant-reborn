@@ -126,12 +126,24 @@ void GameState::fixedUpdate() {
 
          starCount += (map.coinCount <= map.collectedCoins);
          starCount += (map.coinCount <= map.collectedCoins * 2);
-         starCount += (gameTime <= map.time);
+         starCount += (map.coinCount <= map.collectedCoins && gameTime <= map.time);
          previousTime = getLevelData(map.levelID).time;
+
          saveLevelDataOnNewScore({map.coinCount <= map.collectedCoins, gameTime <= map.perfectTime
             && starCount == 3, gameTime, camera.camera.zoom, starCount}, map.coinCount <= map.collectedCoins,
             map.levelID);
          wonNextText->disabled = (!getLevelData(map.levelID).completed && map.levelID != getLevelCount() - 1);
+      }
+
+      if (player.died && !playerKilled) {
+         playSound("horrible");
+         spawnPlayerDeathParticles(player.position, &getTexture(getPlayerIcon(player.iconID)));
+         incrementLevelDeathCount(map.levelID);
+         camera.shake(75.0f, 0.3f);
+         cameraUI.shake(75.0f, 0.3f);
+         playerKilled = true;
+         shouldRestart = true;
+         fadingOut = true;
       }
    }
    cameraUI.update();

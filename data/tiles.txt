@@ -7,7 +7,7 @@
 #texture=my_tile  # Texture. "assets/sprites/my_tile.png" -> "my_tile"
 width=1           # Width of the tile in tiles
 height=1          # Height of the tile in tiles
-type=solid        # Type of the tile - solid, coin, finish
+type=solid        # Type of the tile - solid, coin, finish, deadly
 [END]
 
 texture=visible
@@ -28,4 +28,8 @@ width=3
 texture=dice
 width=4
 height=4
+[END]
+
+type=deadly
+texture=lock
 [END]
