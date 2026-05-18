@@ -385,13 +385,20 @@ void CustomizeState::updateResponsiveness() {
    primaryTab->position = {GetScreenWidth() / 2.0f, 70.0f * cr};
    secondaryTab->position = {GetScreenWidth() / 2.0f + 305.0f * cr, 70.0f * cr};
 
-   float workingWidth = GetScreenWidth() - 200.0f * cr;
-   float singleEntrySizeWithPadding = workingWidth / entriesPerColumn;
+   float topOffset = (primaryTab->position.y + primaryTab->size.y / 2.0f) + 100.0f * cr;
+   float workingHeight = (visibleButton->position.y - visibleButton->size.y / 2.0f) - topOffset;
+   float workingWidth = workingHeight * getAspectRatio();
+   float minimumWorkingSize = fmax(workingHeight, workingWidth);
+
+   float singleEntrySizeWithPadding = minimumWorkingSize / entriesPerColumn;
    float singleEntrySize = singleEntrySizeWithPadding * (6.0f / 7.0f);
    float singleEntrySizeTranslated = singleEntrySize / cr;
 
-   float positionX = cr * 100.0f + singleEntrySize / 2.0f;
-   float positionY = cr * 215.0f;
+   float startX = fmax(singleEntrySize / 2.0f, singleEntrySize / 2.0f + (GetScreenWidth() - minimumWorkingSize) / 2.0f);
+   float startY = singleEntrySize / 2.0f + topOffset;
+
+   float positionX = startX;
+   float positionY = startY;
 
    for (size_t i = extraButtons; i < skinButtons.elements.size(); ++i) {
       TextureRect *button = skinButtons.getTextureRect(i);
@@ -404,19 +411,19 @@ void CustomizeState::updateResponsiveness() {
       
       if (index % entriesPerColumn == 0) {
          float screens = GetScreenWidth() * size_t(index / entriesPerPage);
-         positionX = cr * 100.0f + singleEntrySize / 2.0f + screens;
+         positionX = startX + screens;
          positionY += singleEntrySizeWithPadding;
       }
 
       if (index % entriesPerPage == 0) {
          float screens = GetScreenWidth() * size_t(index / entriesPerPage);
-         positionX = cr * 100.0f + singleEntrySize / 2.0f + screens;
-         positionY = cr * 215.0f;
+         positionX = startX + screens;
+         positionY = startY;
       }
    }
 
-   positionX = cr * 100.0f + singleEntrySize / 2.0f;
-   positionY = cr * 215.0f;
+   positionX = startX;
+   positionY = startY;
 
    for (size_t i = extraButtons; i < colorButtons.elements.size(); ++i) {
       TextureRect *button = colorButtons.getTextureRect(i);
@@ -426,17 +433,17 @@ void CustomizeState::updateResponsiveness() {
 
       positionX += singleEntrySizeWithPadding;
       size_t index = i - extraButtons + 1;
-      
+
       if (index % entriesPerColumn == 0) {
          float screens = GetScreenWidth() * size_t(index / entriesPerPage);
-         positionX = cr * 100.0f + singleEntrySize / 2.0f + screens;
+         positionX = startX + screens;
          positionY += singleEntrySizeWithPadding;
       }
 
       if (index % entriesPerPage == 0) {
          float screens = GetScreenWidth() * size_t(index / entriesPerPage);
-         positionX = cr * 100.0f + singleEntrySize / 2.0f + screens;
-         positionY = cr * 215.0f;
+         positionX = startX + screens;
+         positionY = startY;
       }
    }
 }

@@ -20,6 +20,10 @@ float getCubicRatio() {
    return fminf(getWidthRatio(), getHeightRatio());
 }
 
+float getAspectRatio() {
+   return (float)GetScreenWidth() / GetScreenHeight();
+}
+
 float getFontSize(float fontSize) {
    return fontSize * getCubicRatio();
 }

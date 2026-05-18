@@ -7,6 +7,7 @@
 float getWidthRatio();
 float getHeightRatio();
 float getCubicRatio();
+float getAspectRatio();
 float getFontSize(float fontSize);
 
 Vector2 getScreenSize();
