@@ -1,4 +1,5 @@
 #pragma once
+#include "data.hpp"
 #include "navig.hpp"
 #include "state.hpp"
 
@@ -23,9 +24,17 @@ private:
    Phase phase = Phase::title;
 
    Navigation titleButtons, gameModeSelectionButtons;
-   Text *playButton, *editorButton, *customizeButton, *optionsButton, *quitButton, *storyButton,
-      *endlessButton, *freePlayButton, *backButton;
+   Text *playButton, *editorButton, *customizeButton, *optionsButton, *quitButton, *endlessButton,
+      *freePlayButton, *backButton;
+   Text *chapterButtons[chapterCount];
 
+   TextureAA3 starTexture, timerTexture;
+   std::string chapterInfo;
+   size_t chapterID = 0;
+   bool chapterUnlocked = false;
+
+   bool endlessSelected = false;
+   bool freePlaySelected = false;
    bool shouldPlayLevel = false;
    bool shouldCustomize = false;
 };

@@ -1,6 +1,7 @@
 #include "game_state.hpp"
 #include "asset.hpp"
 #include "data.hpp"
+#include "file.hpp"
 #include "input.hpp"
 #include "math.hpp"
 #include "menu_state.hpp"
@@ -331,7 +332,7 @@ void GameState::renderPausedState() {
 
    drawTextButtonBackground(500.0f, BLACK);
    drawTextSemiCentered(font, {cr * 100.0f, cr * 100.0f}, map.name.c_str(), 50.0f, WHITE);
-   drawTextSemiCentered(font, {cr * 100.0f, cr * 150.0f}, map.chapter.c_str(), 35.0f, {200, 200, 200, 255});
+   drawTextSemiCentered(font, {cr * 100.0f, cr * 150.0f}, (toRomanNumeral(map.chapter) + ": " + getChapterCodeName(map.chapter)).c_str(), 35.0f, {200, 200, 200, 255});
    pauseNavig.render();
 
    if (pauseNavig.anySelected()) {

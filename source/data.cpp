@@ -6,19 +6,23 @@
 #include <sstream>
 #include <unordered_map>
 #include "raymath.h"
+#include <array>
 
 static std::vector<std::string> playerIconContainer;
 static std::vector<Vector3> playerColorContainer;
-static std::vector<std::string> chapterContainer;
 static std::vector<Level> levelContainer;
 static std::vector<Tile> tileContainer;
+static std::vector<ChapterData> chapterData (chapterCount);
 static std::unordered_map<std::string, Animation> animationContainer;
 
-static constexpr size_t differentPerformanceCount = 6;
 static std::vector<std::vector<std::string>> resultLineContainer (differentPerformanceCount + 1);
 static std::vector<std::vector<Color>> resultColorSchemeContainer (differentPerformanceCount + 1);
 
 static std::unordered_map<std::string, size_t> tileNameMap;
+
+static constexpr std::array<const char *, chapterCount> chapterCodeNames {{
+   "Chapter1", "Chapter2", "Chapter3", "Chapter4", "Chapter5", "Chapter6", "Chapter7"
+}};
 
 // game data module
 
@@ -27,8 +31,6 @@ void loadData() {
    loadPlayerIcons();
    printf("Loading player colors from 'data/colors.txt'...\n");
    loadPlayerColors();
-   printf("Loading chapters from 'data/chapters.txt'...\n");
-   loadChapters();
    printf("Loading tiles from 'data/tiles.txt'...\n");
    loadTiles();
    printf("Loading levels from 'data/levels.txt'...\n");
@@ -62,10 +64,6 @@ void loadPlayerColors() {
       }
       playerColorContainer.push_back(color);
    }
-}
-
-void loadChapters() {
-   chapterContainer = getLinesFromFileIgnoringCommentsAndEmptyLines("data/chapters.txt");
 }
 
 template<typename T>
@@ -121,7 +119,7 @@ void loadLevels() {
          level.name = value;
       }
       else if (field == "chapter") {
-         level.chapter = value;
+         getFieldAsSimpleValue(stream, value, line, level.chapter);
       }
       else if (field == "coinTile") {
          level.coinTile = value;
@@ -402,22 +400,6 @@ std::vector<Vector3> &getPlayerColorContainer() {
    return playerColorContainer;
 }
 
-size_t getChapterCount() {
-   return chapterContainer.size();
-}
-
-std::string &getChapter(size_t ID) {
-   if (ID >= getChapterCount()) {
-      printf("ERROR: Chapter ID out of bounds. Size is %lu while ID - %lu.\n", getChapterCount(), ID);
-      exit(EXIT_FAILURE);
-   }
-   return chapterContainer[ID];
-}
-
-std::vector<std::string> &getChapterContainer() {
-   return chapterContainer;
-}
-
 size_t getLevelCount() {
    return levelContainer.size();
 }
@@ -502,6 +484,14 @@ std::vector<Color> &getDefaultResultColorScheme() {
    return resultColorSchemeContainer.back();
 }
 
+const char *getChapterCodeName(size_t chapter) {
+   return chapterCodeNames[chapter];
+}
+
+ChapterData &getChapterData(size_t chapter) {
+   return chapterData[chapter];
+}
+
 // player data module
 
 static CustomizationData customizationData;
@@ -552,6 +542,10 @@ LevelData loadLevelData(size_t ID) {
 }
 
 void saveLevelData(LevelData data, size_t ID) {
+   if (data == LevelData{}) {
+      return;
+   }
+   
    std::fstream file ("data/levels/" + std::to_string(ID) + ".data", std::ios::out | std::ios::binary | std::ios::trunc);
    if (!file.is_open()) {
       return;
@@ -571,6 +565,7 @@ void saveLevelDataOnNewScore(LevelData newData, bool gotAllCoins, size_t ID) {
 
    if (oldData.perfect != data.perfect || oldData.time != data.time || oldData.stars != data.stars || (!oldData.completed && data.completed)) {
       saveLevelData(data, ID);
+      recalculateChapterData();
    }
 }
 
@@ -590,6 +585,17 @@ void loadPlayerData() {
    
    for (size_t i = 0; i < getLevelCount(); ++i) {
       levelData[i] = loadLevelData(i);
+
+      ChapterData &data = chapterData[getLevel(i).chapter];
+      data.levels.push_back(i);
+      data.starCount += levelData[i].stars;
+      data.totalTime = (data.totalTime == std::numeric_limits<float>::max() ? levelData[i].time : data.totalTime + levelData[i].time);
+      data.completedLevels += (levelData[i].completed);
+   }
+
+   for (size_t i = 0; i < chapterCount; ++i) {
+      ChapterData &data = chapterData[i];
+      data.completed = (!data.levels.empty() && data.completedLevels == data.levels.size());
    }
 }
 
@@ -597,5 +603,27 @@ void savePlayerData() {
    saveCustomizationData(customizationData);
    for (size_t i = 0; i < getLevelCount(); ++i) {
       saveLevelData(levelData[i], i);
+   }
+}
+
+void recalculateChapterData() {
+   for (size_t i = 0; i < chapterCount; ++i) {
+      ChapterData &data = chapterData[i];
+      data.starCount = 0;
+      data.totalTime = std::numeric_limits<float>::max();
+      data.completedLevels = 0;
+   }
+
+   for (size_t i = 0; i < getLevelCount(); ++i) {
+      ChapterData &data = chapterData[getLevel(i).chapter];
+
+      data.starCount += levelData[i].stars;
+      data.totalTime = (data.totalTime == std::numeric_limits<float>::max() ? levelData[i].time : data.totalTime + levelData[i].time);
+      data.completedLevels += (levelData[i].completed);
+   }
+
+   for (size_t i = 0; i < chapterCount; ++i) {
+      ChapterData &data = chapterData[i];
+      data.completed = (!data.levels.empty() && data.completedLevels == data.levels.size());
    }
 }

@@ -7,11 +7,22 @@
 
 // game data module
 
+static constexpr size_t chapterCount = 7;
+static constexpr size_t differentPerformanceCount = 6;
+
+struct ChapterData {
+   std::vector<size_t> levels;
+   size_t completedLevels = 0;
+   int starCount = 0;
+   float totalTime = std::numeric_limits<float>::max();
+   bool completed = true;
+};
+
 struct Level {
    std::string name;
-   std::string chapter;
    std::string coinTile;
    std::string timerTile;
+   size_t chapter = 0;
    size_t ID = 0;
    size_t sizeX = 0;
    size_t sizeY = 0;
@@ -54,7 +65,6 @@ struct Tile {
 void loadData();
 void loadPlayerIcons();
 void loadPlayerColors();
-void loadChapters();
 void loadLevels();
 void loadTiles();
 void loadAnimations();
@@ -67,10 +77,6 @@ std::vector<std::string> &getPlayerIconContainer();
 size_t getPlayerColorCount();
 Vector3 &getPlayerColor(size_t ID);
 std::vector<Vector3> &getPlayerColorContainer();
-
-size_t getChapterCount();
-std::string &getChapter(size_t ID);
-std::vector<std::string> &getChapterContainer();
 
 size_t getLevelCount();
 Level &getLevel(size_t ID);
@@ -92,6 +98,9 @@ std::vector<Color> &getResultColorSchemeBasedOnPerformance(size_t performance);
 std::string &getRandomDefaultResultLine();
 std::vector<Color> &getDefaultResultColorScheme();
 
+const char *getChapterCodeName(size_t chapter);
+ChapterData &getChapterData(size_t chapter);
+
 // player data module
 
 struct CustomizationData {
@@ -110,6 +119,11 @@ struct LevelData {
    int deaths = 0;
 };
 
+constexpr inline bool operator == (LevelData lhs, LevelData rhs) {
+   return lhs.completed == rhs.completed && lhs.perfect == rhs.perfect && lhs.time == rhs.time
+       && lhs.zoom == rhs.zoom && lhs.stars == rhs.stars && lhs.deaths == rhs.deaths;
+}
+
 CustomizationData getCustomizationData();
 CustomizationData loadCustomizationData();
 void saveCustomizationData(CustomizationData data);
@@ -123,3 +137,5 @@ void incrementLevelDeathCount(size_t ID);
 
 void loadPlayerData();
 void savePlayerData();
+
+void recalculateChapterData();

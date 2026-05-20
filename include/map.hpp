@@ -26,8 +26,8 @@ struct Map {
    void collectCoin(size_t x, size_t y);
 
    std::string name;
-   std::string chapter;
    std::string coinTile;
+   size_t chapter = 0;
    size_t levelID = 0;
    size_t coinCount = 0;
    size_t collectedCoins = 0;

@@ -93,3 +93,31 @@ std::string wrap(const std::string &string, Font font, float maxWidth, float fon
    }
    return result.str();
 }
+
+// from http://rosettacode.org/wiki/Roman_numerals/Encode#C.2B.2B
+std::string toRomanNumeral(size_t number) {
+   struct romandata_t {
+      size_t value;
+      char const* numeral;
+   };
+
+   static constexpr struct romandata_t romandata[] {
+      {1000, "M"}, {900, "CM"},
+      { 500, "D"}, {400, "CD"},
+      { 100, "C"}, { 90, "XC"},
+      {  50, "L"}, { 40, "XL"},
+      {  10, "X"}, {  9, "IX"},
+      {   5, "V"}, {  4, "IV"},
+      {   1, "I"},
+      {   0, nullptr}
+   };
+
+   std::string result;
+   for (const romandata_t* current = romandata; current->value > 0; ++current) {
+      while (number >= current->value) {
+         result += current->numeral;
+         number -= current->value;
+      }
+   }
+   return result;
+}
